@@ -7,6 +7,10 @@ import {
   PackageCheck,
   Plus,
   UserPlus,
+  Glasses,
+  Scan,
+  Sun,
+  Sparkles,
 } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
@@ -98,6 +102,47 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-2xl font-bold">{greeting()}</h1>
           <p className="text-muted-foreground">{settings.shopName}</p>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="mb-3 text-sm font-semibold text-muted-foreground">
+          Quick Order
+        </h2>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {[
+            {
+              label: "Frame",
+              href: "/orders/new/FRAME",
+              icon: Glasses,
+            },
+            {
+              label: "Lens",
+              href: "/orders/new/LENS",
+              icon: Scan,
+            },
+            {
+              label: "Sunglasses",
+              href: "/orders/new/SUNGLASSES",
+              icon: Sun,
+            },
+            {
+              label: "Accessories",
+              href: "/orders/new/ACCESSORY",
+              icon: Sparkles,
+            },
+          ].map((c) => (
+            <Link
+              key={c.label}
+              href={c.href}
+              className="group flex flex-col items-center justify-center gap-3 rounded-xl border bg-card p-6 text-center shadow-sm transition-colors hover:border-primary hover:bg-accent"
+            >
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                <c.icon className="h-7 w-7" />
+              </div>
+              <span className="text-base font-semibold">{c.label}</span>
+            </Link>
+          ))}
         </div>
       </div>
 

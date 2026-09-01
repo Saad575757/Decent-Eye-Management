@@ -87,6 +87,18 @@ export const orderSchema = z
 
 export type OrderInput = z.infer<typeof orderSchema>;
 
+export const quickOrderSchema = z.object({
+  customerPhone: z.string().min(1, "Customer phone is required").max(40),
+  productId: z.string().optional(),
+  category: z.enum(["FRAME", "LENS", "SUNGLASSES", "ACCESSORY"]),
+  amount: z.number().min(1, "Amount must be at least 1"),
+  advance: z.number().min(0, "Advance cannot be negative"),
+  paymentMethod: z.string().min(1).default("Cash"),
+  notes: z.string().optional().or(z.literal("")),
+});
+
+export type QuickOrderInput = z.infer<typeof quickOrderSchema>;
+
 export const productSchema = z.object({
   name: z.string().min(1, "Product name is required").max(150),
   category: z.enum(["FRAME", "LENS", "SUNGLASSES", "ACCESSORY"]),

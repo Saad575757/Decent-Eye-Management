@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { format, addDays } from "date-fns";
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 import {
@@ -10,12 +11,15 @@ import {
   settingsSchema,
   customerSchema,
   quickCustomerSchema,
+  quickOrderSchema,
   type ProductInput,
   type PaymentInput,
   type SettingsInput,
+  type QuickOrderInput,
 } from "@/lib/validations";
 import { createOrder } from "@/lib/services/orders";
 import { generateCustomerNumber } from "@/lib/services/numbers";
+import { getSettings } from "@/lib/services/settings";
 
 export async function createOrderAction(formData: unknown) {
   try {
@@ -31,6 +35,90 @@ export async function createOrderAction(formData: unknown) {
     return { ok: true, orderId: result.order.id, orderNumber: result.order.orderNumber };
   } catch (err) {
     console.error("createOrder error:", err);
+    return {
+      ok: false,
+      error:
+        (err as Error).message?.includes("stock")
+          ? (err as Error).message
+          : "Unable to create order. Please try again.",
+    };
+  }
+}
+
+export async function createQuickOrderAction(formData: unknown) {
+  try {
+    await requireAuth();
+    const parsed = quickOrderSchema.safeParse(formData);
+    if (!parsed.success) {
+      return { ok: false, error: parsed.error.errors[0]?.message || "Invalid data" };
+    }
+    const data = parsed.data as QuickOrderInput;
+
+    const categoryLabel =
+      {
+        FRAME: "Frame",
+        LENS: "Lens",
+        SUNGLASSES: "Sunglasses",
+        ACCESSORY: "Accessory",
+      }[data.category] || data.category;
+
+    let customerId = "";
+    let createdCustomer = false;
+    const existing = await prisma.customer.findFirst({
+      where: { phone: data.customerPhone },
+    });
+
+    if (existing) {
+      customerId = existing.id;
+    } else {
+      const customerNumber = await generateCustomerNumber();
+      const customer = await prisma.customer.create({
+        data: {
+          customerNumber,
+          name: data.customerPhone,
+          phone: data.customerPhone,
+        },
+      });
+      customerId = customer.id;
+      createdCustomer = true;
+    }
+
+    const settings = await getSettings();
+    const orderDate = new Date();
+
+    const result = await createOrder({
+      customerId,
+      orderDate: format(orderDate, "yyyy-MM-dd"),
+      collectionDate: format(
+        addDays(orderDate, settings.defaultCollectionDays),
+        "yyyy-MM-dd"
+      ),
+      discount: 0,
+      paid: data.advance,
+      paymentMethod: data.paymentMethod,
+      notes: data.notes,
+      items: [
+        {
+          productId: data.productId || undefined,
+          productName: categoryLabel,
+          category: data.category,
+          quantity: 1,
+          price: data.amount,
+        },
+      ],
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/orders");
+    revalidatePath("/customers");
+    return {
+      ok: true,
+      orderId: result.order.id,
+      orderNumber: result.order.orderNumber,
+      createdCustomer,
+    };
+  } catch (err) {
+    console.error("createQuickOrder error:", err);
     return {
       ok: false,
       error:
