@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProductCategory {
+  FRAME
+  LENS
+  SUNGLASSES
+  ACCESSORY
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+model Customer {
+  id             String   @id @default(cuid())
+  customerNumber String   @unique
+  name           String
+  phone          String
+  whatsapp       String?
+  address        String?
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  orders       Order[]
+  prescriptions Prescription[]
+  invoices     Invoice[]
+}
+
+model Prescription {
+  id         String   @id @default(cuid())
+  customerId String
+  orderId    String   @unique
+
+  rightSphere   String?
+  rightCylinder String?
+  rightAxis     String?
+  rightAdd      String?
+  rightPD       String?
+
+  leftSphere   String?
+  leftCylinder String?
+  leftAxis     String?
+  leftAdd      String?
+  leftPD       String?
+
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  order    Order    @relation(fields: [orderId], references: [id])
+
+  @@index([customerId])
+}
+
+model Product {
+  id            String          @id @default(cuid())
+  name          String
+  category      ProductCategory
+  brand         String?
+  description   String?
+  sellingPrice  Int
+  purchasePrice Int?
+  stock         Int             @default(0)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  orderItems OrderItem[]
+
+  @@index([category])
+}
+
+model Order {
+  id               String      @id @default(cuid())
+  orderNumber      String      @unique
+  customerId       String
+  orderDate        DateTime    @default(now())
+  collectionDate   DateTime
+  subtotal         Int
+  discount         Int         @default(0)
+  total            Int
+  paid             Int         @default(0)
+  balance          Int         @default(0)
+  paymentMethod    String?
+  status           OrderStatus @default(PENDING)
+  notes            String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  customer      Customer     @relation(fields: [customerId], references: [id])
+  prescription  Prescription?
+  items         OrderItem[]
+  payments      Payment[]
+  invoice       Invoice?
+
+  @@index([customerId])
+  @@index([orderDate])
+  @@index([status])
+}
+
+model OrderItem {
+  id          String          @id @default(cuid())
+  orderId     String
+  productId   String?
+  productName String
+  category    String
+  quantity    Int
+  price       Int
+  total       Int
+
+  order   Order    @relation(fields: [orderId], references: [id])
+  product Product? @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  orderId       String
+  amount        Int
+  paymentMethod String
+  date          DateTime @default(now())
+  notes         String?
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+}
+
+model Invoice {
+  id            String   @id @default(cuid())
+  invoiceNumber String   @unique
+  orderId       String   @unique
+  customerId    String
+  date          DateTime @default(now())
+  subtotal      Int
+  discount      Int      @default(0)
+  total         Int
+
+  order    Order    @relation(fields: [orderId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+}
+
+model BusinessSettings {
+  id                   String @id @default("default")
+  shopName             String @default("Decent Eye")
+  phone                String?
+  whatsapp             String?
+  address              String?
+  email                String?
+  logo                 String?
+  currency             String @default("PKR")
+  defaultCollectionDays Int    @default(3)
+  lowStockThreshold    Int    @default(5)
+}
