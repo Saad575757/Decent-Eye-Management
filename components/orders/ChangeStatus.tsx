@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { updateOrderStatusAction } from "@/lib/actions";
 
-const STATUSES = ["PENDING", "PROCESSING", "READY", "DELIVERED", "CANCELLED"];
+const STATUSES = ["ADVANCED", "PAID", "CANCELLED"];
 
 export function ChangeStatus({ orderId, current }: { orderId: string; current: string }) {
   const router = useRouter();

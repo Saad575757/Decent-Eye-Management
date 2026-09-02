@@ -54,14 +54,6 @@ export async function createQuickOrderAction(formData: unknown) {
     }
     const data = parsed.data as QuickOrderInput;
 
-    const categoryLabel =
-      {
-        FRAME: "Frame",
-        LENS: "Lens",
-        SUNGLASSES: "Sunglasses",
-        ACCESSORY: "Accessory",
-      }[data.category] || data.category;
-
     let customerId = "";
     let createdCustomer = false;
     const existing = await prisma.customer.findFirst({
@@ -83,8 +75,45 @@ export async function createQuickOrderAction(formData: unknown) {
       createdCustomer = true;
     }
 
+    const familyIds: string[] = [];
+    for (const member of data.familyMembers || []) {
+      let id = "";
+      if (member.phone) {
+        const ex = await prisma.customer.findFirst({
+          where: { phone: member.phone },
+        });
+        if (ex) id = ex.id;
+      }
+      if (!id) {
+        const customerNumber = await generateCustomerNumber();
+        const customer = await prisma.customer.create({
+          data: {
+            customerNumber,
+            name: member.name?.trim() || member.phone?.trim() || "Family Member",
+            phone: member.phone?.trim() || "",
+            whatsapp: member.whatsapp?.trim() || null,
+            address: member.address?.trim() || null,
+            notes: member.notes?.trim() || null,
+          },
+        });
+        id = customer.id;
+      }
+      familyIds.push(id);
+    }
+
+    const itemCustomerId = (ref?: string): string | undefined => {
+      const idx = parseInt(ref || "0", 10);
+      if (idx === 0 || !Number.isFinite(idx)) return customerId;
+      if (idx > 0 && familyIds[idx - 1]) return familyIds[idx - 1];
+      return customerId;
+    };
+
     const settings = await getSettings();
     const orderDate = new Date();
+    const subtotal = data.items.reduce(
+      (sum, item) => sum + item.quantity * item.price,
+      0
+    );
 
     const result = await createOrder({
       customerId,
@@ -97,16 +126,22 @@ export async function createQuickOrderAction(formData: unknown) {
       paid: data.advance,
       paymentMethod: data.paymentMethod,
       notes: data.notes,
-      items: [
-        {
-          productId: data.productId || undefined,
-          productName: categoryLabel,
-          category: data.category,
-          quantity: 1,
-          price: data.amount,
-        },
-      ],
-    });
+      items: data.items.map((item) => ({
+        productId: item.productId || undefined,
+        customerId: itemCustomerId(item.customerId),
+        productName: item.productName,
+        category: item.category,
+        subType: item.subType || undefined,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      prescription: data.prescription || undefined,
+    }, (data.customerPrescriptions || [])
+      .map((cp) => ({
+        customerId: itemCustomerId(cp.customerId) || customerId,
+        prescription: cp.prescription as Record<string, string | undefined>,
+      }))
+      .filter((cp) => cp.prescription && Object.values(cp.prescription).some(Boolean)));
 
     revalidatePath("/dashboard");
     revalidatePath("/orders");
@@ -297,7 +332,12 @@ export async function addPaymentAction(orderId: string, formData: unknown) {
       const newBalance = order.total - newPaid;
       await tx.order.update({
         where: { id: orderId },
-        data: { paid: newPaid, balance: newBalance, paymentMethod: data.paymentMethod },
+        data: {
+          paid: newPaid,
+          balance: newBalance,
+          paymentMethod: data.paymentMethod,
+          status: newBalance === 0 ? "PAID" : "ADVANCED",
+        },
       });
 
       return { newPaid, newBalance, total: order.total };
@@ -322,7 +362,7 @@ export async function addPaymentAction(orderId: string, formData: unknown) {
 export async function updateOrderStatusAction(orderId: string, status: string) {
   try {
     await requireAuth();
-    const validStatuses = ["PENDING", "PROCESSING", "READY", "DELIVERED", "CANCELLED"];
+    const validStatuses = ["ADVANCED", "PAID", "CANCELLED"];
     if (!validStatuses.includes(status)) {
       return { ok: false, error: "Invalid status" };
     }

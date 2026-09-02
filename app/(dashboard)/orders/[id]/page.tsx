@@ -33,8 +33,8 @@ export default async function OrderDetailPage({
     where: { id },
     include: {
       customer: true,
-      prescription: true,
-      items: true,
+      prescriptions: { include: { customer: true } },
+      items: { include: { customer: true } },
       payments: { orderBy: { date: "desc" } },
       invoice: true,
     },
@@ -127,42 +127,42 @@ export default async function OrderDetailPage({
             </CardContent>
           </Card>
 
-          {order.prescription && (
-            <Card>
+          {order.prescriptions.map((rx) => (
+            <Card key={rx.id}>
               <CardHeader>
-                <CardTitle>Prescription</CardTitle>
+                <CardTitle>
+                  Prescription{rx.customer ? ` — ${rx.customer.name}` : ""}
+                </CardTitle>
               </CardHeader>
               <CardContent className="text-sm">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="rounded-md bg-muted/50 p-3">
                     <div className="mb-2 font-medium">Right Eye</div>
                     <div className="space-y-0.5">
-                      <div>SPH: {order.prescription.rightSphere || "—"}</div>
-                      <div>CYL: {order.prescription.rightCylinder || "—"}</div>
-                      <div>AXIS: {order.prescription.rightAxis || "—"}</div>
-                      <div>ADD: {order.prescription.rightAdd || "—"}</div>
-                      <div>PD: {order.prescription.rightPD || "—"}</div>
+                      <div>SPH: {rx.rightSphere || "—"}</div>
+                      <div>CYL: {rx.rightCylinder || "—"}</div>
+                      <div>AXIS: {rx.rightAxis || "—"}</div>
+                      <div>ADD: {rx.rightAdd || "—"}</div>
+                      <div>PD: {rx.rightPD || "—"}</div>
                     </div>
                   </div>
                   <div className="rounded-md bg-muted/50 p-3">
                     <div className="mb-2 font-medium">Left Eye</div>
                     <div className="space-y-0.5">
-                      <div>SPH: {order.prescription.leftSphere || "—"}</div>
-                      <div>CYL: {order.prescription.leftCylinder || "—"}</div>
-                      <div>AXIS: {order.prescription.leftAxis || "—"}</div>
-                      <div>ADD: {order.prescription.leftAdd || "—"}</div>
-                      <div>PD: {order.prescription.leftPD || "—"}</div>
+                      <div>SPH: {rx.leftSphere || "—"}</div>
+                      <div>CYL: {rx.leftCylinder || "—"}</div>
+                      <div>AXIS: {rx.leftAxis || "—"}</div>
+                      <div>ADD: {rx.leftAdd || "—"}</div>
+                      <div>PD: {rx.leftPD || "—"}</div>
                     </div>
                   </div>
                 </div>
-                {order.prescription.notes && (
-                  <div className="mt-3 text-muted-foreground">
-                    {order.prescription.notes}
-                  </div>
+                {rx.notes && (
+                  <div className="mt-3 text-muted-foreground">{rx.notes}</div>
                 )}
               </CardContent>
             </Card>
-          )}
+          ))}
 
           <Card>
             <CardHeader>
@@ -173,6 +173,9 @@ export default async function OrderDetailPage({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Item</TableHead>
+                    {order.items.some((i) => i.customer) && (
+                      <TableHead>Customer</TableHead>
+                    )}
                     <TableHead>Category</TableHead>
                     <TableHead className="text-right">Qty</TableHead>
                     <TableHead className="text-right">Price</TableHead>
@@ -185,6 +188,11 @@ export default async function OrderDetailPage({
                       <TableCell className="font-medium">
                         {item.productName}
                       </TableCell>
+                      {order.items.some((i) => i.customer) && (
+                        <TableCell>
+                          {item.customer?.name || "—"}
+                        </TableCell>
+                      )}
                       <TableCell className="capitalize">
                         {item.category.toLowerCase()}
                       </TableCell>
@@ -283,17 +291,7 @@ export default async function OrderDetailPage({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChangeStatus
-                orderId={order.id}
-                current={order.status}
-              />
-            </CardContent>
-          </Card>
+          
         </div>
       </div>
     </div>

@@ -2,7 +2,26 @@ import { prisma } from "@/lib/db";
 import { generateCustomerNumber, generateOrderNumber, generateInvoiceNumber } from "./numbers";
 import type { OrderInput } from "../validations";
 
-export async function createOrder(data: OrderInput) {
+export async function autoCancelUncollectedOrders() {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 30);
+
+  await prisma.order.updateMany({
+    where: {
+      status: { not: "CANCELLED" },
+      collectionDate: { lt: cutoff },
+    },
+    data: { status: "CANCELLED" },
+  });
+}
+
+export async function createOrder(
+  data: OrderInput,
+  customerPrescriptions?: {
+    customerId: string;
+    prescription: Record<string, string | undefined>;
+  }[]
+) {
   const subtotal = data.items.reduce((sum, i) => sum + i.quantity * i.price, 0);
   const total = subtotal - data.discount;
   const balance = total - data.paid;
@@ -48,13 +67,15 @@ export async function createOrder(data: OrderInput) {
         paid: data.paid,
         balance,
         paymentMethod: data.paymentMethod,
-        status: balance > 0 ? "PENDING" : "PENDING",
+        status: balance > 0 ? "ADVANCED" : "PAID",
         notes: data.notes || null,
         items: {
           create: data.items.map((item) => ({
             productId: item.productId || null,
+            customerId: item.customerId || null,
             productName: item.productName.trim(),
             category: item.category,
+            subType: item.subType || null,
             quantity: item.quantity,
             price: item.price,
             total: item.quantity * item.price,
@@ -64,11 +85,11 @@ export async function createOrder(data: OrderInput) {
       include: { items: true },
     });
 
-    if (data.prescription) {
-      const p = data.prescription;
+    const createRx = async (rxCustomerId: string, p: Record<string, string | undefined>) => {
+      if (!rxCustomerId) return;
       await tx.prescription.create({
         data: {
-          customerId,
+          customerId: rxCustomerId,
           orderId: order.id,
           rightSphere: p.rightSphere || null,
           rightCylinder: p.rightCylinder || null,
@@ -83,6 +104,17 @@ export async function createOrder(data: OrderInput) {
           notes: p.notes || null,
         },
       });
+    };
+
+    if (data.prescription) {
+      await createRx(customerId, data.prescription as Record<string, string | undefined>);
+    }
+    if (customerPrescriptions) {
+      for (const cp of customerPrescriptions) {
+        if (cp.prescription) {
+          await createRx(cp.customerId, cp.prescription);
+        }
+      }
     }
 
     await tx.invoice.create({

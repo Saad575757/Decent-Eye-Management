@@ -1,11 +1,13 @@
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 import { getSettings } from "@/lib/services/settings";
+import { autoCancelUncollectedOrders } from "@/lib/services/orders";
 import { PageHeader } from "@/components/PageHeader";
 import { OrdersClient } from "./OrdersClient";
 
 export default async function OrdersPage() {
   await requireAuth();
+  await autoCancelUncollectedOrders();
   const settings = await getSettings();
   const orders = await prisma.order.findMany({
     orderBy: { createdAt: "desc" },

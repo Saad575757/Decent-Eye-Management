@@ -12,13 +12,14 @@ enum ProductCategory {
   LENS
   SUNGLASSES
   ACCESSORY
+  GLASS
+  SOLUTION
+  CONTACT_LENS
 }
 
 enum OrderStatus {
-  PENDING
-  PROCESSING
-  READY
-  DELIVERED
+  ADVANCED
+  PAID
   CANCELLED
 }
 
@@ -34,6 +35,7 @@ model Customer {
   updatedAt      DateTime @updatedAt
 
   orders       Order[]
+  orderItems   OrderItem[]
   prescriptions Prescription[]
   invoices     Invoice[]
 }
@@ -41,7 +43,7 @@ model Customer {
 model Prescription {
   id         String   @id @default(cuid())
   customerId String
-  orderId    String   @unique
+  orderId    String
 
   rightSphere   String?
   rightCylinder String?
@@ -63,6 +65,7 @@ model Prescription {
   order    Order    @relation(fields: [orderId], references: [id])
 
   @@index([customerId])
+  @@index([orderId])
 }
 
 model Product {
@@ -94,13 +97,13 @@ model Order {
   paid             Int         @default(0)
   balance          Int         @default(0)
   paymentMethod    String?
-  status           OrderStatus @default(PENDING)
+  status           OrderStatus @default(ADVANCED)
   notes            String?
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
 
-  customer      Customer     @relation(fields: [customerId], references: [id])
-  prescription  Prescription?
+  customer      Customer       @relation(fields: [customerId], references: [id])
+  prescriptions Prescription[]
   items         OrderItem[]
   payments      Payment[]
   invoice       Invoice?
@@ -114,16 +117,20 @@ model OrderItem {
   id          String          @id @default(cuid())
   orderId     String
   productId   String?
+  customerId  String?
   productName String
   category    String
+  subType     String?
   quantity    Int
   price       Int
   total       Int
 
-  order   Order    @relation(fields: [orderId], references: [id])
-  product Product? @relation(fields: [productId], references: [id])
+  order    Order    @relation(fields: [orderId], references: [id])
+  product  Product? @relation(fields: [productId], references: [id])
+  customer Customer? @relation(fields: [customerId], references: [id])
 
   @@index([orderId])
+  @@index([customerId])
 }
 
 model Payment {

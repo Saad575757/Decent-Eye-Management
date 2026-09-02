@@ -1,0 +1,17 @@
+
+> decent-eye@1.0.0 dev
+> next dev
+
+   ▲ Next.js 15.5.24
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.48:3000
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 17.4s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 833ms (210 modules)
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 22.5s (907 modules)
+ ✓ Compiled in 2.5s (303 modules)
+Terminate batch job (Y/N)? [?25h

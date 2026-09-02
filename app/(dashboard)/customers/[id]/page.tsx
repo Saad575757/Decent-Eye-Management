@@ -32,7 +32,7 @@ export default async function CustomerProfilePage({
     include: {
       orders: {
         orderBy: { createdAt: "desc" },
-        include: { prescription: true },
+        include: { prescriptions: { include: { customer: true } } },
       },
     },
   });
@@ -162,23 +162,25 @@ export default async function CustomerProfilePage({
               <CardTitle>Prescription History</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {customer.orders.filter((o) => o.prescription).length === 0 ? (
+              {customer.orders.every((o) => o.prescriptions.length === 0) ? (
                 <p className="text-sm text-muted-foreground">
                   No prescriptions recorded.
                 </p>
               ) : (
                 customer.orders
-                  .filter((o) => o.prescription)
-                  .map((o) => {
-                    const p = o.prescription!;
-                    return (
+                  .filter((o) => o.prescriptions.length > 0)
+                  .map((o) =>
+                    o.prescriptions.map((p) => (
                       <div
-                        key={o.id}
+                        key={p.id}
                         className="rounded-lg border p-4 text-sm"
                       >
                         <div className="mb-2 flex items-center justify-between">
                           <span className="font-medium">
                             {o.orderNumber}
+                            {p.customer &&
+                              p.customer.name &&
+                              ` — ${p.customer.name}`}
                           </span>
                           <span className="text-muted-foreground">
                             {formatDate(o.orderDate)}
@@ -228,8 +230,8 @@ export default async function CustomerProfilePage({
                           </div>
                         )}
                       </div>
-                    );
-                  })
+                    ))
+                  )
               )}
             </CardContent>
           </Card>

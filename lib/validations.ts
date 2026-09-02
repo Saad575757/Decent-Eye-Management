@@ -22,8 +22,10 @@ export type QuickCustomerInput = z.infer<typeof quickCustomerSchema>;
 
 export const orderItemSchema = z.object({
   productId: z.string().min(1).optional(),
+  customerId: z.string().min(1).optional(),
   productName: z.string().min(1, "Item name is required"),
   category: z.string().min(1),
+  subType: z.string().optional().or(z.literal("")),
   quantity: z.number().int().min(1, "Quantity must be at least 1"),
   price: z.number().min(0, "Price cannot be negative"),
 });
@@ -87,14 +89,46 @@ export const orderSchema = z
 
 export type OrderInput = z.infer<typeof orderSchema>;
 
+export const quickOrderItemSchema = z.object({
+  productId: z.string().optional(),
+  customerId: z.string().optional(),
+  productName: z.string().min(1),
+  category: z.string().min(1),
+  subType: z.string().optional().or(z.literal("")),
+  quantity: z.number().int().min(1),
+  price: z.number().min(0),
+});
+
+const rxObject = z.object({
+  rightSphere: z.string().optional().or(z.literal("")),
+  rightCylinder: z.string().optional().or(z.literal("")),
+  rightAxis: z.string().optional().or(z.literal("")),
+  rightAdd: z.string().optional().or(z.literal("")),
+  rightPD: z.string().optional().or(z.literal("")),
+  leftSphere: z.string().optional().or(z.literal("")),
+  leftCylinder: z.string().optional().or(z.literal("")),
+  leftAxis: z.string().optional().or(z.literal("")),
+  leftAdd: z.string().optional().or(z.literal("")),
+  leftPD: z.string().optional().or(z.literal("")),
+  notes: z.string().optional().or(z.literal("")),
+});
+
 export const quickOrderSchema = z.object({
   customerPhone: z.string().min(1, "Customer phone is required").max(40),
-  productId: z.string().optional(),
-  category: z.enum(["FRAME", "LENS", "SUNGLASSES", "ACCESSORY"]),
-  amount: z.number().min(1, "Amount must be at least 1"),
+  familyMembers: z.array(quickCustomerSchema).optional(),
+  items: z.array(quickOrderItemSchema).min(1, "Add at least one item"),
   advance: z.number().min(0, "Advance cannot be negative"),
   paymentMethod: z.string().min(1).default("Cash"),
   notes: z.string().optional().or(z.literal("")),
+  prescription: rxObject.optional(),
+  customerPrescriptions: z
+    .array(
+      z.object({
+        customerId: z.string().optional(),
+        prescription: rxObject.optional(),
+      })
+    )
+    .optional(),
 });
 
 export type QuickOrderInput = z.infer<typeof quickOrderSchema>;

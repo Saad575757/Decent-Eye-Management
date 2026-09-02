@@ -29,13 +29,21 @@ import { formatCurrency, cn } from "@/lib/utils";
 import { createOrderAction, createQuickCustomerAction } from "@/lib/actions";
 import type { CartItem } from "@/lib/types";
 
-const LENS_TYPES = [
-  "Single Vision",
-  "Bifocal",
-  "Progressive",
-  "Blue Cut",
-  "Photochromic",
-  "Anti-Reflective",
+const FRAME_TYPES = [
+  "Sheet Frame",
+  "Sheet Branded Frame",
+  "Metal Frame",
+  "Metal Branded Frame",
+  "Other",
+];
+
+const SUNGLASS_TYPES = [
+  "Fancy",
+  "Brand",
+  "Other",
+];
+
+const CONTACT_LENS_TYPES = [
   "Other",
 ];
 
@@ -94,6 +102,7 @@ export function NewOrderForm({
   const lensProducts = products.filter((p) => p.category === "LENS");
   const sunglassProducts = products.filter((p) => p.category === "SUNGLASSES");
   const accessoryProducts = products.filter((p) => p.category === "ACCESSORY");
+  const contactLensProducts = products.filter((p) => p.category === "CONTACT_LENS");
 
   const subtotal = useMemo(
     () => items.reduce((sum, i) => sum + i.total, 0),
@@ -114,6 +123,9 @@ export function NewOrderForm({
       c.customerNumber.toLowerCase().includes(q)
     );
   });
+
+  const PRESCRIPTION_CATEGORIES = ["FRAME", "LENS", "SUNGLASSES", "CONTACT_LENS"];
+  const hasPrescriptionItem = items.some((i) => PRESCRIPTION_CATEGORIES.includes(i.category));
 
   function addItem(item: CartItem) {
     setItems((prev) => [...prev, item]);
@@ -167,7 +179,7 @@ export function NewOrderForm({
         quantity: i.quantity,
         price: i.price,
       })),
-      prescription: {
+      prescription: hasPrescriptionItem ? {
         rightSphere: prescription.rightSphere,
         rightCylinder: prescription.rightCylinder,
         rightAxis: prescription.rightAxis,
@@ -179,7 +191,7 @@ export function NewOrderForm({
         leftAdd: prescription.leftAdd,
         leftPD: prescription.leftPD,
         notes: prescription.notes,
-      },
+      } : undefined,
       customer: showNewCustomer && !customerId ? newCustomer : undefined,
     };
 
@@ -357,7 +369,9 @@ export function NewOrderForm({
           </CardContent>
         </Card>
 
-        <PrescriptionForm values={prescription} onChange={setPrescription} />
+        {hasPrescriptionItem && (
+          <PrescriptionForm values={prescription} onChange={setPrescription} />
+        )}
 
         <Card>
           <CardHeader>
@@ -371,6 +385,7 @@ export function NewOrderForm({
               currency={currency}
               onAdd={addItem}
               customPlaceholder="Frame Description"
+              subTypes={FRAME_TYPES}
             />
           </CardContent>
         </Card>
@@ -388,7 +403,6 @@ export function NewOrderForm({
               onAdd={addItem}
               customPlaceholder="Lens Description"
               showQuantity
-              lensTypes={LENS_TYPES}
             />
           </CardContent>
         </Card>
@@ -406,6 +420,25 @@ export function NewOrderForm({
               onAdd={addItem}
               customPlaceholder="Sunglasses Description"
               showQuantity
+              subTypes={SUNGLASS_TYPES}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Contact Lens</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ProductSelector
+              title="Select Contact Lens"
+              category="CONTACT_LENS"
+              products={contactLensProducts}
+              currency={currency}
+              onAdd={addItem}
+              customPlaceholder="Contact Lens Description"
+              showQuantity
+              subTypes={CONTACT_LENS_TYPES}
             />
           </CardContent>
         </Card>

@@ -11,36 +11,35 @@ export interface SlipData {
   customerPhone: string;
   orderDate: Date;
   collectionDate: Date;
-  items: string[];
+  items: {
+    customerName?: string | null;
+    label: string;
+  }[];
   total: number;
   paid: number;
   balance: number;
+  qrCode?: string;
 }
 
 export function CustomerSlipPrint({ slip }: { slip: SlipData }) {
   return (
-    <div className="mx-auto max-w-sm bg-white px-6 py-8 text-black">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold uppercase tracking-widest">
-          {slip.shopName}
-        </h1>
-        <p className="text-sm">Optical Shop</p>
-        {(slip.phone || slip.whatsapp) && (
-          <p className="mt-1 text-sm">
-            {slip.phone && <>Phone: {slip.phone}</>}
-            {slip.phone && slip.whatsapp && <br />}
-            {slip.whatsapp && <>WhatsApp: {slip.whatsapp}</>}
-          </p>
-        )}
+    <div className="mx-auto w-[80mm] bg-white px-3 py-5 text-black">
+      <div className="flex justify-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/decent-eye-logo.png"
+          alt={slip.shopName}
+          className="h-24 w-auto object-contain"
+        />
       </div>
 
-      <div className="mt-6 text-center">
-        <p className="text-lg font-semibold uppercase tracking-wide">
+      <div className="mt-2 text-center">
+        <p className="text-sm font-semibold uppercase tracking-wide">
           Customer Slip
         </p>
       </div>
 
-      <div className="mt-4 space-y-1 text-sm">
+      <div className="mt-3 space-y-1 text-xs">
         <div className="flex justify-between">
           <span>Order No:</span>
           <span className="font-semibold">{slip.orderNumber}</span>
@@ -59,20 +58,33 @@ export function CustomerSlipPrint({ slip }: { slip: SlipData }) {
         </div>
       </div>
 
-      <div className="my-4 border-b border-dashed border-gray-400" />
+      <div className="my-3 border-b border-dashed border-gray-400" />
 
-      <div className="text-sm">
+      <div className="text-xs">
         <p className="font-semibold">Items</p>
         <div className="mt-1 space-y-0.5">
-          {slip.items.map((item, idx) => (
-            <div key={idx}>• {item}</div>
-          ))}
+          {slip.items.map((item, idx) => {
+            const prev = slip.items[idx - 1];
+            const showHeader =
+              !prev ||
+              (item.customerName || "") !== (prev.customerName || "");
+            return (
+              <div key={idx}>
+                {showHeader && item.customerName && (
+                  <p className="mt-1 font-semibold uppercase first:mt-0">
+                    {item.customerName}
+                  </p>
+                )}
+                <div>• {item.label}</div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      <div className="my-4 border-b border-dashed border-gray-400" />
+      <div className="my-3 border-b border-dashed border-gray-400" />
 
-      <div className="space-y-1 text-sm font-medium">
+      <div className="ml-auto w-44 space-y-0.5 text-xs font-medium">
         <div className="flex justify-between">
           <span>TOTAL:</span>
           <span>{formatCurrency(slip.total, slip.currency)}</span>
@@ -87,22 +99,41 @@ export function CustomerSlipPrint({ slip }: { slip: SlipData }) {
         </div>
       </div>
 
-      <div className="my-6 border-y-2 border-double border-gray-800 py-4 text-center">
-        <p className="text-xs font-medium uppercase tracking-widest">
+      {slip.qrCode && (
+        <div className="mt-3 flex flex-col items-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={slip.qrCode} alt="QR code" className="h-24 w-24" />
+          <p className="mt-1 text-[10px]">Scan to verify order</p>
+        </div>
+      )}
+
+      <div className="my-3 border-t border-dashed border-gray-400" />
+
+      <div className="my-3 border-y-2 border-double border-gray-800 py-3 text-center">
+        <p className="text-[10px] font-medium uppercase tracking-widest">
           Collection Date
         </p>
-        <p className="mt-1 text-3xl font-black tracking-wider">
+        <p className="text-xl font-black tracking-wider">
           {format(new Date(slip.collectionDate), "dd MMM yyyy").toUpperCase()}
         </p>
       </div>
 
-      <div className="text-center text-xs">
-        <p className="font-semibold">
-          Please bring this slip when collecting your glasses.
-        </p>
-        <p className="mt-1">
-          Thank you for choosing {slip.shopName}.
-        </p>
+      <div className="text-center text-[10px] leading-relaxed">
+        <p>Shop No. 8, Farhan Tower, Block-10/A,</p>
+        <p>Near Toyota Showroom Gulshan-e-Iqbal, Karachi.</p>
+        <p>Cell: 0308-2246251, 0337-3161788</p>
+        <p>Email: faizangha808@gmail.com</p>
+        <p>Website: shamaoptics.blogspot.com</p>
+      </div>
+
+      <div className="mt-2 text-center text-[10px] font-semibold leading-snug">
+        Note: Article not collected within 30 days shall
+        <br />
+        be considered unclaimed.
+      </div>
+
+      <div className="mt-3 text-center text-[10px]">
+        Please bring this slip when collecting your glasses.
       </div>
     </div>
   );

@@ -56,8 +56,14 @@ export function CategoryOrderForm({
     setLoading(true);
     const payload = {
       customerPhone: customerNumberInput.trim(),
-      category,
-      amount: amountNum,
+      items: [
+        {
+          category,
+          productName: categoryName,
+          quantity: 1,
+          price: amountNum,
+        },
+      ],
       advance: Math.min(advanceNum, amountNum),
       paymentMethod,
       notes,

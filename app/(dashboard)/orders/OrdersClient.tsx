@@ -84,10 +84,8 @@ export function OrdersClient({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All Statuses</SelectItem>
-              <SelectItem value="PENDING">Pending</SelectItem>
-              <SelectItem value="PROCESSING">Processing</SelectItem>
-              <SelectItem value="READY">Ready</SelectItem>
-              <SelectItem value="DELIVERED">Delivered</SelectItem>
+              <SelectItem value="ADVANCED">Advanced</SelectItem>
+              <SelectItem value="PAID">Paid</SelectItem>
               <SelectItem value="CANCELLED">Cancelled</SelectItem>
             </SelectContent>
           </Select>

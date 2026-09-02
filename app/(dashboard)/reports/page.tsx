@@ -19,14 +19,14 @@ export default async function ReportsPage() {
 
   const monthStart = startOfMonth(new Date());
 
-  const [
+    const [
     todaySales,
     monthSales,
     totalOrders,
     outstanding,
-    pending,
-    ready,
-    delivered,
+    advancedCount,
+    paidCount,
+    cancelledCount,
     allOrders,
   ] = await Promise.all([
     prisma.order.aggregate({
@@ -42,9 +42,9 @@ export default async function ReportsPage() {
       _sum: { balance: true },
       where: { status: { not: "CANCELLED" } },
     }),
-    prisma.order.count({ where: { status: "PENDING" } }),
-    prisma.order.count({ where: { status: "READY" } }),
-    prisma.order.count({ where: { status: "DELIVERED" } }),
+    prisma.order.count({ where: { status: "ADVANCED" } }),
+    prisma.order.count({ where: { status: "PAID" } }),
+    prisma.order.count({ where: { status: "CANCELLED" } }),
     prisma.order.findMany({
       orderBy: { orderDate: "desc" },
       include: { customer: true },
@@ -56,9 +56,9 @@ export default async function ReportsPage() {
     { title: "This Month's Sales", value: formatCurrency(monthSales._sum.total || 0, currency) },
     { title: "Total Orders", value: String(totalOrders) },
     { title: "Outstanding Balance", value: formatCurrency(outstanding._sum.balance || 0, currency) },
-    { title: "Pending Orders", value: String(pending) },
-    { title: "Ready Orders", value: String(ready) },
-    { title: "Delivered Orders", value: String(delivered) },
+    { title: "Advanced Orders", value: String(advancedCount) },
+    { title: "Paid Orders", value: String(paidCount) },
+    { title: "Cancelled Orders", value: String(cancelledCount) },
   ];
 
   const serializedOrders = allOrders.map((o) => ({

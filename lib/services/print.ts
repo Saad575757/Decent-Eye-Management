@@ -6,7 +6,7 @@ export async function getOrderForPrint(orderId: string) {
     include: {
       customer: true,
       invoice: true,
-      items: true,
+      items: { include: { customer: true } },
     },
   });
   return order;

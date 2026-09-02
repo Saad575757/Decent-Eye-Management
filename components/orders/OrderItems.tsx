@@ -22,12 +22,17 @@ export function OrderItems({
   currency: string;
   onRemove: (index: number) => void;
 }) {
+  const hasCustomers = items.some((i) => i.customerName);
+  const colSpan = hasCustomers ? 8 : 7;
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Item</TableHead>
+          {hasCustomers && <TableHead>Customer</TableHead>}
           <TableHead>Category</TableHead>
+          <TableHead>Type</TableHead>
           <TableHead className="text-right">Qty</TableHead>
           <TableHead className="text-right">Price</TableHead>
           <TableHead className="text-right">Total</TableHead>
@@ -38,7 +43,7 @@ export function OrderItems({
         {items.length === 0 ? (
           <TableRow>
             <TableCell
-              colSpan={6}
+              colSpan={colSpan}
               className="py-6 text-center text-muted-foreground"
             >
               No items added yet.
@@ -48,8 +53,14 @@ export function OrderItems({
           items.map((item, idx) => (
             <TableRow key={`${item.productName}-${idx}`}>
               <TableCell className="font-medium">{item.productName}</TableCell>
+              {hasCustomers && (
+                <TableCell>{item.customerName || "—"}</TableCell>
+              )}
               <TableCell className="capitalize">
                 {item.category.toLowerCase()}
+              </TableCell>
+              <TableCell className="capitalize">
+                {item.subType ? item.subType.toLowerCase() : "-"}
               </TableCell>
               <TableCell className="text-right">{item.quantity}</TableCell>
               <TableCell className="text-right">

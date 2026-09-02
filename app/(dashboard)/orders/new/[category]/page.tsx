@@ -5,15 +5,21 @@ import { CategoryOrderForm } from "@/components/orders/CategoryOrderForm";
 
 const CATEGORIES = [
   "FRAME",
-  "LENS",
+  "GLASS",
   "SUNGLASSES",
+  "SOLUTION",
+  "CONTACT_LENS",
+  "LENS",
   "ACCESSORY",
 ] as const;
 
 const CATEGORY_LABELS: Record<string, string> = {
   FRAME: "Frame",
+  GLASS: "Glass",
   LENS: "Lens",
   SUNGLASSES: "Sunglasses",
+  SOLUTION: "Solution",
+  CONTACT_LENS: "Contact Lens",
   ACCESSORY: "Accessory",
 };
 

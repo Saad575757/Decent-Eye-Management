@@ -154,7 +154,7 @@ async function main() {
   const sampleOrders = [
     {
       customerIndex: 0,
-      status: "READY" as OrderStatus,
+      status: "PAID" as OrderStatus,
       items: [productIdMap["Classic Black Metal Frame"], productIdMap["Blue Cut Lens"], productIdMap["Premium Glasses Case"]],
       discount: 500,
       paidRatio: 0.5,
@@ -166,7 +166,7 @@ async function main() {
     },
     {
       customerIndex: 1,
-      status: "PROCESSING" as OrderStatus,
+      status: "PAID" as OrderStatus,
       items: [productIdMap["Brown Plastic Frame"], productIdMap["Progressive Lens"]],
       discount: 0,
       paidRatio: 1,
@@ -178,7 +178,7 @@ async function main() {
     },
     {
       customerIndex: 2,
-      status: "DELIVERED" as OrderStatus,
+      status: "PAID" as OrderStatus,
       items: [productIdMap["Classic Black Sunglasses"], productIdMap["Cleaning Cloth"]],
       discount: 100,
       paidRatio: 1,
@@ -187,7 +187,7 @@ async function main() {
     },
     {
       customerIndex: 3,
-      status: "PENDING" as OrderStatus,
+      status: "ADVANCED" as OrderStatus,
       items: [productIdMap["Gold Rimless Frame"], productIdMap["Photochromic Lens"], productIdMap["Glasses Chain"]],
       discount: 1000,
       paidRatio: 0.25,
@@ -199,7 +199,7 @@ async function main() {
     },
     {
       customerIndex: 4,
-      status: "READY" as OrderStatus,
+      status: "ADVANCED" as OrderStatus,
       items: [productIdMap["Matte Black Sport Frame"], productIdMap["Anti-Reflective Lens"]],
       discount: 0,
       paidRatio: 0.6,
@@ -211,7 +211,7 @@ async function main() {
     },
     {
       customerIndex: 5,
-      status: "DELIVERED" as OrderStatus,
+      status: "PAID" as OrderStatus,
       items: [productIdMap["Round Vintage Frame"], productIdMap["Single Vision Lens"], productIdMap["Cleaning Spray"]],
       discount: 200,
       paidRatio: 1,
@@ -232,7 +232,7 @@ async function main() {
     },
     {
       customerIndex: 7,
-      status: "PENDING" as OrderStatus,
+      status: "ADVANCED" as OrderStatus,
       items: [productIdMap["Blue Transparent Frame"], productIdMap["Bifocal Lens"]],
       discount: 300,
       paidRatio: 0,
@@ -244,7 +244,7 @@ async function main() {
     },
     {
       customerIndex: 8,
-      status: "PROCESSING" as OrderStatus,
+      status: "ADVANCED" as OrderStatus,
       items: [productIdMap["Women's Cat Eye Sunglasses"]],
       discount: 0,
       paidRatio: 0.5,
@@ -253,7 +253,7 @@ async function main() {
     },
     {
       customerIndex: 9,
-      status: "READY" as OrderStatus,
+      status: "ADVANCED" as OrderStatus,
       items: [productIdMap["Round Vintage Frame"], productIdMap["Blue Cut Lens"], productIdMap["Premium Glasses Case"]],
       discount: 150,
       paidRatio: 0.8,
