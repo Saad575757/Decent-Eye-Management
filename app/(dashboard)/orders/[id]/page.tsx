@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Printer } from "lucide-react";
+import { Printer, Pencil } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 import { getSettings } from "@/lib/services/settings";
@@ -52,6 +52,12 @@ export default async function OrderDetailPage({
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <Button asChild variant="outline">
+              <Link href={`/orders/${order.id}/edit`}>
+                <Pencil className="h-4 w-4" />
+                Edit
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
               <Link href={`/orders/${order.id}/print-bill`} target="_blank">
                 <Printer className="h-4 w-4" />
                 Print Bill
@@ -63,8 +69,21 @@ export default async function OrderDetailPage({
                 Print Slip
               </Link>
             </Button>
+            <Button asChild variant="outline">
+              <Link href={`/orders/${order.id}/print-memo`} target="_blank">
+                <Printer className="h-4 w-4" />
+                Print Memo
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href={`/orders/${order.id}/print-prescription`} target="_blank">
+                <Printer className="h-4 w-4" />
+                Print Prescription
+              </Link>
+            </Button>
             <OrderDetailClient
               orderId={order.id}
+              orderNumber={order.orderNumber}
               total={order.total}
               paid={order.paid}
               balance={order.balance}

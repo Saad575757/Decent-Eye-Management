@@ -83,6 +83,21 @@ export default async function OrderSuccessPage({
                     Print Customer Slip
                   </Link>
                 </Button>
+                <Button asChild variant="outline">
+                  <Link
+                    href={`/orders/${order.id}/print-prescription`}
+                    target="_blank"
+                  >
+                    <Printer className="h-4 w-4" />
+                    Print Prescription
+                  </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href={`/orders/${order.id}/print-memo`} target="_blank">
+                    <Printer className="h-4 w-4" />
+                    Print Memo
+                  </Link>
+                </Button>
                 <Button asChild variant="ghost">
                   <Link href={`/orders/${order.id}`}>
                     <Eye className="h-4 w-4" />

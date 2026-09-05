@@ -33,8 +33,9 @@ export async function createOrder(
   const orderNumber = await generateOrderNumber();
   const invoiceNumber = await generateInvoiceNumber();
 
-  return prisma.$transaction(async (tx) => {
-    let customerId = data.customerId;
+  return prisma.$transaction(
+    async (tx) => {
+      let customerId = data.customerId;
 
     if (data.customer && !customerId) {
       const customerNumber = await generateCustomerNumber();
@@ -111,6 +112,7 @@ export async function createOrder(
     }
     if (customerPrescriptions) {
       for (const cp of customerPrescriptions) {
+        if (!cp.customerId || cp.customerId === customerId) continue;
         if (cp.prescription) {
           await createRx(cp.customerId, cp.prescription);
         }
@@ -161,5 +163,7 @@ export async function createOrder(
     }
 
     return { order, customerId };
-  });
+    },
+    { timeout: 30000 }
+  );
 }

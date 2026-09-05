@@ -86,6 +86,7 @@ export default async function PrintBillPage({
     <div className="min-h-screen bg-gray-100 py-6">
       <WhatsAppSend
         message={waMessage}
+        shopWhatsapp={settings.whatsapp}
         printLabel="Print Bill"
         downloadName={`bill-${bill.invoiceNumber}.png`}
       >

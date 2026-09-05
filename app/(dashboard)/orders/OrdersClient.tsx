@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Printer, Eye, CreditCard } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Printer, Eye, CreditCard, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -23,7 +24,9 @@ import {
 import { SearchInput } from "@/components/SearchInput";
 import { EmptyState } from "@/components/EmptyState";
 import { StatusBadge } from "@/components/StatusBadge";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { deleteOrderAction } from "@/lib/actions";
 
 type OrderRow = {
   id: string;
@@ -53,6 +56,19 @@ export function OrdersClient({
 }) {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("ALL");
+  const [deleteTarget, setDeleteTarget] = useState<OrderRow | null>(null);
+  const router = useRouter();
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    const res = await deleteOrderAction(deleteTarget.id);
+    if (res.ok) {
+      setDeleteTarget(null);
+      router.refresh();
+    } else {
+      alert(res.error);
+    }
+  };
 
   const filtered = useMemo(() => {
     return orders.filter((o) => {
@@ -153,6 +169,21 @@ export function OrdersClient({
                               View
                             </Link>
                           </Button>
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/orders/${o.id}/edit`}>
+                              <Pencil className="h-3.5 w-3.5" />
+                              Edit
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() => setDeleteTarget(o)}
+                            aria-label={`Delete order ${o.orderNumber}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -163,6 +194,18 @@ export function OrdersClient({
           )}
         </CardContent>
       </Card>
+
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        title="Delete Order"
+        description={`Are you sure you want to delete order ${
+          deleteTarget?.orderNumber ?? ""
+        }? This action cannot be undone.`}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

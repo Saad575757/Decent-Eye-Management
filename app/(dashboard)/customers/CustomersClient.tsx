@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Plus, Pencil } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -15,7 +16,9 @@ import {
 } from "@/components/ui/table";
 import { SearchInput } from "@/components/SearchInput";
 import { EmptyState } from "@/components/EmptyState";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { CustomerFormDialog } from "@/components/customers/CustomerFormDialog";
+import { deleteCustomerAction } from "@/lib/actions";
 
 type CustomerRow = {
   id: string;
@@ -31,6 +34,19 @@ type CustomerRow = {
 export function CustomersClient({ customers }: { customers: CustomerRow[] }) {
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<CustomerRow | null>(null);
+  const router = useRouter();
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    const res = await deleteCustomerAction(deleteTarget.id);
+    if (res.ok) {
+      setDeleteTarget(null);
+      router.refresh();
+    } else {
+      alert(res.error);
+    }
+  };
 
   const filtered = useMemo(() => {
     if (!search.trim()) return customers;
@@ -99,9 +115,20 @@ export function CustomersClient({ customers }: { customers: CustomerRow[] }) {
                       <TableCell>{c.whatsapp || "—"}</TableCell>
                       <TableCell>{c._count.orders}</TableCell>
                       <TableCell className="text-right">
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/customers/${c.id}`}>View</Link>
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/customers/${c.id}`}>View</Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() => setDeleteTarget(c)}
+                            aria-label={`Delete customer ${c.name}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -115,6 +142,18 @@ export function CustomersClient({ customers }: { customers: CustomerRow[] }) {
       <CustomerFormDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
+      />
+
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        title="Delete Customer"
+        description={`Are you sure you want to delete customer ${
+          deleteTarget?.name ?? ""
+        }? All their orders, payments and prescriptions will also be deleted. This action cannot be undone.`}
+        onConfirm={handleDelete}
       />
     </div>
   );

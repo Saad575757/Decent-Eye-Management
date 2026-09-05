@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import QRCode from "qrcode";
+import type { Metadata } from "next";
 import { format } from "date-fns";
 import { getSession } from "@/lib/auth";
 import { getSettings } from "@/lib/services/settings";
@@ -7,6 +7,10 @@ import { getOrderForPrint } from "@/lib/services/print";
 import { formatCurrency } from "@/lib/utils";
 import { CustomerSlipPrint, type SlipData } from "@/components/print/CustomerSlipPrint";
 import { WhatsAppSend } from "@/components/print/WhatsAppSend";
+
+export const metadata: Metadata = {
+  title: "",
+};
 
 export default async function PrintSlipPage({
   params,
@@ -22,9 +26,6 @@ export default async function PrintSlipPage({
     getSettings(),
   ]);
   if (!order) notFound();
-
-  const qrText = `${order.orderNumber}|${order.customer.name}|${order.total}`;
-  const qrCode = await QRCode.toDataURL(qrText, { width: 200 });
 
   const slip: SlipData = {
     shopName: settings.shopName,
@@ -43,7 +44,6 @@ export default async function PrintSlipPage({
     total: order.total,
     paid: order.paid,
     balance: order.balance,
-    qrCode,
   };
 
   const waMessage = [
@@ -69,6 +69,7 @@ export default async function PrintSlipPage({
       <WhatsAppSend
         message={waMessage}
         recipients={[slip.customerPhone]}
+        shopWhatsapp={settings.whatsapp}
         printLabel="Print Customer Slip"
         downloadName={`slip-${slip.orderNumber}.png`}
       >

@@ -16,6 +16,7 @@ import {
   type PaymentInput,
   type SettingsInput,
   type QuickOrderInput,
+  type OrderInput,
 } from "@/lib/validations";
 import { createOrder } from "@/lib/services/orders";
 import { generateCustomerNumber } from "@/lib/services/numbers";
@@ -301,6 +302,142 @@ export async function updateProductAction(id: string, formData: unknown) {
   }
 }
 
+export async function updateOrderAction(orderId: string, formData: unknown) {
+  try {
+    await requireAuth();
+    const parsed = orderSchema.safeParse(formData);
+    if (!parsed.success) {
+      return { ok: false, error: parsed.error.errors[0]?.message || "Invalid data" };
+    }
+    const data = parsed.data as OrderInput;
+
+    const existing = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    });
+    if (!existing) return { ok: false, error: "Order not found." };
+
+    const subtotal = data.items.reduce(
+      (sum, i) => sum + i.quantity * i.price,
+      0
+    );
+    const total = subtotal - data.discount;
+    const balance = total - data.paid;
+    if (balance < 0) {
+      return { ok: false, error: "Paid cannot be greater than total" };
+    }
+
+    await prisma.$transaction(
+      async (tx) => {
+        for (const old of existing.items) {
+          if (old.productId) {
+            await tx.product.update({
+              where: { id: old.productId },
+              data: { stock: { increment: old.quantity } },
+            });
+          }
+        }
+
+        for (const item of data.items) {
+          if (!item.productId) continue;
+          const product = await tx.product.findUnique({
+            where: { id: item.productId },
+          });
+          if (product && product.stock < item.quantity) {
+            throw new Error(
+              `Insufficient stock for ${item.productName}. Available: ${product.stock}`
+            );
+          }
+          if (product) {
+            await tx.product.update({
+              where: { id: item.productId },
+              data: { stock: { decrement: item.quantity } },
+            });
+          }
+        }
+
+        await tx.prescription.deleteMany({
+          where: { orderId, customerId: data.customerId },
+        });
+        await tx.orderItem.deleteMany({ where: { orderId } });
+
+        await tx.order.update({
+          where: { id: orderId },
+          data: {
+            customerId: data.customerId,
+            collectionDate: new Date(data.collectionDate),
+            subtotal,
+            discount: data.discount,
+            total,
+            paid: data.paid,
+            balance,
+            paymentMethod: data.paymentMethod,
+            status: balance > 0 ? "ADVANCED" : "PAID",
+            notes: data.notes || null,
+            items: {
+              create: data.items.map((item) => ({
+                productId: item.productId || null,
+                customerId: item.customerId || null,
+                productName: item.productName.trim(),
+                category: item.category,
+                subType: item.subType || null,
+                quantity: item.quantity,
+                price: item.price,
+                total: item.quantity * item.price,
+              })),
+            },
+          },
+        });
+
+        if (data.prescription) {
+          await tx.prescription.create({
+            data: {
+              customerId: data.customerId,
+              orderId,
+              rightSphere: data.prescription.rightSphere || null,
+              rightCylinder: data.prescription.rightCylinder || null,
+              rightAxis: data.prescription.rightAxis || null,
+              rightAdd: data.prescription.rightAdd || null,
+              rightPD: data.prescription.rightPD || null,
+              leftSphere: data.prescription.leftSphere || null,
+              leftCylinder: data.prescription.leftCylinder || null,
+              leftAxis: data.prescription.leftAxis || null,
+              leftAdd: data.prescription.leftAdd || null,
+              leftPD: data.prescription.leftPD || null,
+              notes: data.prescription.notes || null,
+            },
+          });
+        }
+
+        await tx.invoice.update({
+          where: { orderId },
+          data: {
+            customerId: data.customerId,
+            subtotal,
+            discount: data.discount,
+            total,
+          },
+        });
+      },
+      { timeout: 30000 }
+    );
+
+    revalidatePath("/dashboard");
+    revalidatePath("/orders");
+    revalidatePath(`/orders/${orderId}`);
+    revalidatePath("/customers");
+    return { ok: true };
+  } catch (err) {
+    console.error("updateOrder error:", err);
+    return {
+      ok: false,
+      error: (err as Error).message?.includes("stock")
+        ? (err as Error).message
+        : "Unable to update order. Please try again.",
+    };
+  }
+}
+
 export async function addPaymentAction(orderId: string, formData: unknown) {
   try {
     await requireAuth();
@@ -377,6 +514,65 @@ export async function updateOrderStatusAction(orderId: string, status: string) {
   } catch (err) {
     console.error("updateStatus error:", err);
     return { ok: false, error: "Unable to update status. Please try again." };
+  }
+}
+
+export async function deleteOrderAction(orderId: string) {
+  try {
+    await requireAuth();
+    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) return { ok: false, error: "Order not found." };
+    await prisma.$transaction(async (tx) => {
+      await tx.prescription.deleteMany({ where: { orderId } });
+      await tx.payment.deleteMany({ where: { orderId } });
+      await tx.invoice.deleteMany({ where: { orderId } });
+      await tx.orderItem.deleteMany({ where: { orderId } });
+      await tx.order.delete({ where: { id: orderId } });
+    });
+    revalidatePath("/dashboard");
+    revalidatePath("/orders");
+    revalidatePath("/customers");
+    return { ok: true };
+  } catch (err) {
+    console.error("deleteOrder error:", err);
+    return { ok: false, error: "Unable to delete order. Please try again." };
+  }
+}
+
+export async function deleteCustomerAction(customerId: string) {
+  try {
+    await requireAuth();
+    const customer = await prisma.customer.findUnique({
+      where: { id: customerId },
+    });
+    if (!customer) return { ok: false, error: "Customer not found." };
+    await prisma.$transaction(async (tx) => {
+      const orderIds = (
+        await tx.order.findMany({
+          where: { customerId },
+          select: { id: true },
+        })
+      ).map((o) => o.id);
+      await tx.prescription.deleteMany({
+        where: { OR: [{ customerId }, { orderId: { in: orderIds } }] },
+      });
+      await tx.payment.deleteMany({ where: { orderId: { in: orderIds } } });
+      await tx.invoice.deleteMany({
+        where: { OR: [{ customerId }, { orderId: { in: orderIds } }] },
+      });
+      await tx.orderItem.deleteMany({
+        where: { OR: [{ customerId }, { orderId: { in: orderIds } }] },
+      });
+      await tx.order.deleteMany({ where: { customerId } });
+      await tx.customer.delete({ where: { id: customerId } });
+    });
+    revalidatePath("/dashboard");
+    revalidatePath("/orders");
+    revalidatePath("/customers");
+    return { ok: true };
+  } catch (err) {
+    console.error("deleteCustomer error:", err);
+    return { ok: false, error: "Unable to delete customer. Please try again." };
   }
 }
 

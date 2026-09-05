@@ -6,7 +6,7 @@ import { toPng } from "html-to-image";
 import { MessageCircle, Printer, ImageDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const RECIPIENT = "03484630117";
+const DEFAULT_RECIPIENT = "03484630117";
 
 function toWaNumber(raw: string): string {
   const digits = raw.replace(/\D/g, "");
@@ -18,12 +18,14 @@ function toWaNumber(raw: string): string {
 export function WhatsAppSend({
   message,
   recipients = [],
+  shopWhatsapp,
   printLabel,
   downloadName,
   children,
 }: {
   message: string;
   recipients?: string[];
+  shopWhatsapp?: string | null;
   printLabel: string;
   downloadName: string;
   children: ReactNode;
@@ -33,7 +35,7 @@ export function WhatsAppSend({
 
   const targets = Array.from(
     new Set(
-      [...recipients, RECIPIENT]
+      [...recipients, shopWhatsapp || DEFAULT_RECIPIENT]
         .map((p) => p?.trim())
         .filter((p): p is string => !!p)
         .map(toWaNumber)

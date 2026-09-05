@@ -35,7 +35,7 @@ export interface BillData {
 
 export function BillPrint({ bill }: { bill: BillData }) {
   return (
-    <div className="mx-auto w-[80mm] bg-white px-3 py-5 text-black">
+    <div className="mx-auto w-[72mm] bg-white px-3 py-5 text-black">
       <div className="flex justify-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -149,8 +149,8 @@ export function BillPrint({ bill }: { bill: BillData }) {
         <p>Shop No. 8, Farhan Tower, Block-10/A,</p>
         <p>Near Toyota Showroom Gulshan-e-Iqbal, Karachi.</p>
         <p>Cell: 0308-2246251, 0337-3161788</p>
-        <p>Email: faizangha808@gmail.com</p>
-        <p>Website: shamaoptics.blogspot.com</p>
+        {/* <p>Email: faizangha808@gmail.com</p>
+        <p>Website: shamaoptics.blogspot.com</p> */}
       </div>
 
       <div className="my-2 border-t-2 border-double border-gray-800 pt-2 text-center">

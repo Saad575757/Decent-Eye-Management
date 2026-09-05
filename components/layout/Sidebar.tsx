@@ -4,8 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  PlusCircle,
-  Package,
   Users,
   ShoppingCart,
   CreditCard,
@@ -19,10 +17,8 @@ import { Button } from "@/components/ui/button";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/orders/new", label: "New Order", icon: PlusCircle },
   { href: "/orders", label: "Orders", icon: ShoppingCart },
   { href: "/customers", label: "Customers", icon: Users },
-  { href: "/products", label: "Products", icon: Package },
   { href: "/payments", label: "Payments", icon: CreditCard },
   { href: "/reports", label: "Reports", icon: BarChart3 },
   { href: "/settings", label: "Settings", icon: Settings },
@@ -47,9 +43,7 @@ export function SidebarContent({ shopName }: { shopName: string }) {
         {navItems.map((item) => {
           const active =
             pathname === item.href ||
-            (item.href !== "/dashboard" &&
-              item.href !== "/orders/new" &&
-              pathname.startsWith(item.href));
+            (item.href !== "/dashboard" && pathname.startsWith(item.href));
           return (
             <Link
               key={item.href}
