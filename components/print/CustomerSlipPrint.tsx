@@ -23,7 +23,7 @@ export interface SlipData {
 
 export function CustomerSlipPrint({ slip }: { slip: SlipData }) {
   return (
-    <div className="mx-auto w-[72mm] bg-white px-3 py-2 text-black">
+    <div className="mx-auto w-[80mm] bg-white px-3 py-2 text-black">
       <div className="flex justify-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
