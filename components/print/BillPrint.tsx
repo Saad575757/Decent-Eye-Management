@@ -35,7 +35,7 @@ export interface BillData {
 
 export function BillPrint({ bill }: { bill: BillData }) {
   return (
-    <div className="-ml-[12mm] -mt-[12mm] w-[60mm] bg-white px-3 py-2 text-black">
+    <div className="-ml-[10mm] w-[60mm] bg-white px-3 py-2 text-black">
       <div className="flex justify-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
