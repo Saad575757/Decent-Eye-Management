@@ -50,12 +50,18 @@ const FRAME_TYPES = [
 
 const SUNGLASS_TYPES = ["Fancy", "Brand", "Other"];
 
+const GLASS_TYPES = ["Other"];
+
 const CONTACT_LENS_TYPES = ["Other"];
+
+const SOLUTION_TYPES = ["Other"];
 
 const CATEGORY_TYPES: Record<string, string[]> = {
   FRAME: FRAME_TYPES,
   SUNGLASSES: SUNGLASS_TYPES,
+  GLASS: GLASS_TYPES,
   CONTACT_LENS: CONTACT_LENS_TYPES,
+  SOLUTION: SOLUTION_TYPES,
 };
 
 const PRESCRIPTION_CATEGORIES = ["FRAME", "LENS", "SUNGLASSES", "CONTACT_LENS"];

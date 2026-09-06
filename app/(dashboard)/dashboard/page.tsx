@@ -1,10 +1,6 @@
 import Link from "next/link";
 import { startOfDay, endOfDay } from "date-fns";
 import {
-  ClipboardList,
-  Banknote,
-  Hourglass,
-  PackageCheck,
   Plus,
   UserPlus,
 } from "lucide-react";
@@ -43,23 +39,7 @@ export default async function DashboardPage() {
   const todayStart = startOfDay(new Date());
   const todayEnd = endOfDay(new Date());
 
-  const [
-    todayOrders,
-    todaySales,
-    advancedOrders,
-    paidOrders,
-    recentOrders,
-    todayCollections,
-  ] = await Promise.all([
-    prisma.order.count({
-      where: { orderDate: { gte: todayStart, lte: todayEnd } },
-    }),
-    prisma.order.aggregate({
-      _sum: { total: true },
-      where: { orderDate: { gte: todayStart, lte: todayEnd } },
-    }),
-    prisma.order.count({ where: { status: "ADVANCED" } }),
-    prisma.order.count({ where: { status: "PAID" } }),
+  const [recentOrders, todayCollections] = await Promise.all([
     prisma.order.findMany({
       take: 10,
       orderBy: { createdAt: "desc" },
@@ -72,49 +52,27 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  const cards = [
-    {
-      title: "Today's Orders",
-      value: String(todayOrders),
-      icon: ClipboardList,
-    },
-    {
-      title: "Today's Sales",
-      value: formatCurrency(todaySales._sum.total || 0, currency),
-      icon: Banknote,
-    },
-    {
-      title: "Advanced Orders",
-      value: String(advancedOrders),
-      icon: Hourglass,
-    },
-    {
-      title: "Paid Orders",
-      value: String(paidOrders),
-      icon: PackageCheck,
-    },
-  ];
-
   return (
     <div className="space-y-6 p-4 sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{greeting()}</h1>
+          <h1 className="bg-gradient-to-r from-indigo-600 via-fuchsia-500 to-pink-500 bg-clip-text text-2xl font-bold text-transparent">
+            {greeting()}
+          </h1>
           <p className="text-muted-foreground">{settings.shopName}</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <Link
-          href="/testing-slips/new"
-          className="group flex flex-col items-center justify-center gap-3 rounded-xl border bg-card p-6 text-center shadow-sm transition-all hover:border-primary/50 hover:bg-accent"
-        >
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 transition-colors group-hover:bg-primary/20">
-            <Plus className="h-7 w-7 text-primary" />
-          </div>
-          <span className="text-base font-semibold">New Testing Slip</span>
-        </Link>
-      </div>
+      <Link
+        href="/testing-slips/new"
+        className="group relative flex items-center gap-4 overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-700 to-blue-800 p-5 text-white shadow-lg transition-transform hover:scale-[1.01]"
+      >
+        <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/10 transition-transform group-hover:scale-110" />
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20 transition-transform group-hover:scale-110">
+          <Plus className="h-6 w-6" />
+        </div>
+        <span className="text-lg font-bold">New Testing Slip</span>
+      </Link>
 
 <QuickCategoryPicker />
 
