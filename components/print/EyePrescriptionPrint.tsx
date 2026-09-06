@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/utils";
 import type { PrescriptionPrintData } from "@/components/print/PrescriptionPrint";
 
 export interface EyePrescriptionPrintData {
@@ -7,6 +8,10 @@ export interface EyePrescriptionPrintData {
   customerPhone: string;
   orderDate: Date;
   prescriptions: PrescriptionPrintData[];
+  currency?: string;
+  total?: number;
+  paid?: number;
+  balance?: number;
 }
 
 function EyeBlock({
@@ -116,6 +121,28 @@ export function EyePrescriptionPrint({
           ))}
         </div>
       )}
+
+      <div className="my-3 border-t border-dashed border-gray-400" />
+
+      {data.currency !== undefined &&
+        data.total !== undefined &&
+        data.paid !== undefined &&
+        data.balance !== undefined && (
+          <div className="ml-auto w-44 space-y-0.5 text-xs font-medium">
+            <div className="flex justify-between">
+              <span>Total:</span>
+              <span>{formatCurrency(data.total, data.currency)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Paid:</span>
+              <span>{formatCurrency(data.paid, data.currency)}</span>
+            </div>
+            <div className="flex justify-between font-bold">
+              <span>Balance:</span>
+              <span>{formatCurrency(data.balance, data.currency)}</span>
+            </div>
+          </div>
+        )}
 
       <div className="my-3 border-t border-dashed border-gray-400" />
 

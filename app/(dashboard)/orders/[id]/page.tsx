@@ -81,6 +81,15 @@ export default async function OrderDetailPage({
                 Print Prescription
               </Link>
             </Button>
+            <Button asChild variant="outline">
+              <Link
+                href={`/orders/${order.id}/print-prescription-balance`}
+                target="_blank"
+              >
+                <Printer className="h-4 w-4" />
+                Print Prescription (Balance)
+              </Link>
+            </Button>
             <OrderDetailClient
               orderId={order.id}
               orderNumber={order.orderNumber}
