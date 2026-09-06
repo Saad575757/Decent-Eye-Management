@@ -33,8 +33,6 @@ export default async function PrintTestingSlipPage({
 
   const data: TestingSlipPrintData = {
     shopName: settings.shopName,
-    address: settings.address,
-    phone: settings.phone,
     currency: settings.currency,
     slipNumber: slip.slipNumber,
     orderDate: slip.orderDate,
