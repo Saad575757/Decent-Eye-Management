@@ -38,6 +38,7 @@ model Customer {
   orderItems   OrderItem[]
   prescriptions Prescription[]
   invoices     Invoice[]
+  testingSlips TestingSlip[]
 }
 
 model Prescription {
@@ -131,6 +132,38 @@ model OrderItem {
 
   @@index([orderId])
   @@index([customerId])
+}
+
+model TestingSlip {
+  id          String   @id @default(cuid())
+  slipNumber  String   @unique
+  customerId  String
+  orderDate   DateTime @default(now())
+
+  rightSphere   String?
+  rightCylinder String?
+  rightAxis     String?
+  rightAdd      String?
+  rightPD       String?
+
+  leftSphere   String?
+  leftCylinder String?
+  leftAxis     String?
+  leftAdd      String?
+  leftPD       String?
+
+  notes     String?
+  price     Int
+  advance   Int
+  remaining Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@index([customerId])
+  @@index([orderDate])
 }
 
 model Payment {

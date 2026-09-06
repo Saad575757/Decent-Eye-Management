@@ -27,6 +27,20 @@ export async function generateOrderNumber() {
   return `ORD-${year}-${String(next).padStart(4, "0")}`;
 }
 
+export async function generateTestingSlipNumber() {
+  const year = new Date().getFullYear();
+  const last = await prisma.testingSlip.findFirst({
+    orderBy: { slipNumber: "desc" },
+    select: { slipNumber: true },
+  });
+  let next = 1;
+  if (last) {
+    const match = last.slipNumber.match(/(\d+)$/);
+    if (match) next = parseInt(match[1], 10) + 1;
+  }
+  return `TS-${year}-${String(next).padStart(4, "0")}`;
+}
+
 export async function generateInvoiceNumber() {
   const year = new Date().getFullYear();
   const last = await prisma.invoice.findFirst({

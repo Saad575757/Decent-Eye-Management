@@ -170,3 +170,36 @@ export const settingsSchema = z.object({
 });
 
 export type SettingsInput = z.infer<typeof settingsSchema>;
+
+const rxFields = {
+  rightSphere: z.string().optional().or(z.literal("")),
+  rightCylinder: z.string().optional().or(z.literal("")),
+  rightAxis: z.string().optional().or(z.literal("")),
+  rightAdd: z.string().optional().or(z.literal("")),
+  rightPD: z.string().optional().or(z.literal("")),
+  leftSphere: z.string().optional().or(z.literal("")),
+  leftCylinder: z.string().optional().or(z.literal("")),
+  leftAxis: z.string().optional().or(z.literal("")),
+  leftAdd: z.string().optional().or(z.literal("")),
+  leftPD: z.string().optional().or(z.literal("")),
+} as const;
+
+export const testingSlipSchema = z
+  .object({
+    customerId: z.string().min(1, "Please select a customer"),
+    price: z.coerce.number().min(0, "Price cannot be negative"),
+    advance: z.coerce.number().min(0, "Advance payment cannot be negative"),
+    notes: z.string().optional().or(z.literal("")),
+    ...rxFields,
+  })
+  .superRefine((data, ctx) => {
+    if (data.advance > data.price) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["advance"],
+        message: "Advance payment cannot be greater than price",
+      });
+    }
+  });
+
+export type TestingSlipInput = z.infer<typeof testingSlipSchema>;

@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth";
 
 const PROTECTED_PREFIXES = [
   "/dashboard",
+  "/testing-slips",
   "/orders",
   "/customers",
   "/products",
@@ -43,6 +44,7 @@ export const config = {
   matcher: [
     "/",
     "/dashboard",
+    "/testing-slips/:path*",
     "/orders/:path*",
     "/customers/:path*",
     "/products",

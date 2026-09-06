@@ -12,14 +12,19 @@ import {
   customerSchema,
   quickCustomerSchema,
   quickOrderSchema,
+  testingSlipSchema,
   type ProductInput,
   type PaymentInput,
   type SettingsInput,
   type QuickOrderInput,
   type OrderInput,
+  type TestingSlipInput,
 } from "@/lib/validations";
 import { createOrder } from "@/lib/services/orders";
-import { generateCustomerNumber } from "@/lib/services/numbers";
+import {
+  generateCustomerNumber,
+  generateTestingSlipNumber,
+} from "@/lib/services/numbers";
 import { getSettings } from "@/lib/services/settings";
 
 export async function createOrderAction(formData: unknown) {
@@ -614,5 +619,115 @@ export async function updateSettingsAction(formData: unknown) {
   } catch (err) {
     console.error("updateSettings error:", err);
     return { ok: false, error: "Unable to save settings. Please try again." };
+  }
+}
+
+export async function createTestingSlipAction(formData: unknown) {
+  try {
+    await requireAuth();
+    const parsed = testingSlipSchema.safeParse(formData);
+    if (!parsed.success) {
+      return { ok: false, error: parsed.error.errors[0]?.message || "Invalid data" };
+    }
+    const data = parsed.data as TestingSlipInput;
+    const slipNumber = await generateTestingSlipNumber();
+    const customer = await prisma.customer.findUnique({
+      where: { id: data.customerId },
+    });
+    if (!customer) return { ok: false, error: "Customer not found." };
+
+    const price = Number(data.price) || 0;
+    const advance = Number(data.advance) || 0;
+    const remaining = Math.max(0, price - advance);
+
+    const slip = await prisma.testingSlip.create({
+      data: {
+        slipNumber,
+        customerId: data.customerId,
+        rightSphere: data.rightSphere?.trim() || null,
+        rightCylinder: data.rightCylinder?.trim() || null,
+        rightAxis: data.rightAxis?.trim() || null,
+        rightAdd: data.rightAdd?.trim() || null,
+        rightPD: data.rightPD?.trim() || null,
+        leftSphere: data.leftSphere?.trim() || null,
+        leftCylinder: data.leftCylinder?.trim() || null,
+        leftAxis: data.leftAxis?.trim() || null,
+        leftAdd: data.leftAdd?.trim() || null,
+        leftPD: data.leftPD?.trim() || null,
+        notes: data.notes?.trim() || null,
+        price,
+        advance,
+        remaining,
+      },
+    });
+    revalidatePath("/dashboard");
+    revalidatePath("/testing-slips");
+    revalidatePath("/customers");
+    return { ok: true, slipId: slip.id, slipNumber: slip.slipNumber };
+  } catch (err) {
+    console.error("createTestingSlip error:", err);
+    return { ok: false, error: "Unable to create testing slip. Please try again." };
+  }
+}
+
+export async function deleteTestingSlipAction(slipId: string) {
+  try {
+    await requireAuth();
+    const slip = await prisma.testingSlip.findUnique({ where: { id: slipId } });
+    if (!slip) return { ok: false, error: "Testing slip not found." };
+    await prisma.testingSlip.delete({ where: { id: slipId } });
+    revalidatePath("/testing-slips");
+    revalidatePath("/dashboard");
+    return { ok: true };
+  } catch (err) {
+    console.error("deleteTestingSlip error:", err);
+    return { ok: false, error: "Unable to delete testing slip. Please try again." };
+  }
+}
+
+export async function updateTestingSlipAction(slipId: string, formData: unknown) {
+  try {
+    await requireAuth();
+    const parsed = testingSlipSchema.safeParse(formData);
+    if (!parsed.success) {
+      return { ok: false, error: parsed.error.errors[0]?.message || "Invalid data" };
+    }
+    const data = parsed.data as TestingSlipInput;
+    const existing = await prisma.testingSlip.findUnique({
+      where: { id: slipId },
+    });
+    if (!existing) return { ok: false, error: "Testing slip not found." };
+
+    const price = Number(data.price) || 0;
+    const advance = Number(data.advance) || 0;
+    const remaining = Math.max(0, price - advance);
+
+    await prisma.testingSlip.update({
+      where: { id: slipId },
+      data: {
+        customerId: data.customerId,
+        rightSphere: data.rightSphere?.trim() || null,
+        rightCylinder: data.rightCylinder?.trim() || null,
+        rightAxis: data.rightAxis?.trim() || null,
+        rightAdd: data.rightAdd?.trim() || null,
+        rightPD: data.rightPD?.trim() || null,
+        leftSphere: data.leftSphere?.trim() || null,
+        leftCylinder: data.leftCylinder?.trim() || null,
+        leftAxis: data.leftAxis?.trim() || null,
+        leftAdd: data.leftAdd?.trim() || null,
+        leftPD: data.leftPD?.trim() || null,
+        notes: data.notes?.trim() || null,
+        price,
+        advance,
+        remaining,
+      },
+    });
+    revalidatePath("/testing-slips");
+    revalidatePath(`/testing-slips/${slipId}`);
+    revalidatePath("/dashboard");
+    return { ok: true, slipId, slipNumber: existing.slipNumber };
+  } catch (err) {
+    console.error("updateTestingSlip error:", err);
+    return { ok: false, error: "Unable to update testing slip. Please try again." };
   }
 }

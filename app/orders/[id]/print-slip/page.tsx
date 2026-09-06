@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+﻿import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { format } from "date-fns";
 import { getSession } from "@/lib/auth";
@@ -47,7 +47,7 @@ export default async function PrintSlipPage({
   };
 
   const waMessage = [
-    `${settings.shopName} — Customer Slip`,
+    `${settings.shopName} â€” Customer Slip`,
     `Order No: ${slip.orderNumber}`,
     `Customer: ${slip.customerName}`,
     `Phone: ${slip.customerPhone}`,
@@ -65,7 +65,7 @@ export default async function PrintSlipPage({
   ].join("\n");
 
   return (
-    <div className="min-h-screen bg-gray-100 py-6">
+    <div className="min-h-screen bg-gray-100 py-6 print:py-0">
       <WhatsAppSend
         message={waMessage}
         recipients={[slip.customerPhone]}

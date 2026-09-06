@@ -2,5 +2,6 @@
   @page {
     size: A5 portrait;
     margin: 8mm;
+    margin-top: 0;
   }
 }

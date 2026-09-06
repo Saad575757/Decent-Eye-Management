@@ -11,12 +11,14 @@ import {
   Settings,
   LogOut,
   Eye,
+  ScanLine,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/testing-slips", label: "Testing Slips", icon: ScanLine },
   { href: "/orders", label: "Orders", icon: ShoppingCart },
   { href: "/customers", label: "Customers", icon: Users },
   { href: "/payments", label: "Payments", icon: CreditCard },

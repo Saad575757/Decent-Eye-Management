@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+﻿import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getSession } from "@/lib/auth";
 import { getSettings } from "@/lib/services/settings";
@@ -58,9 +58,9 @@ export default async function PrintPrescriptionPage({
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-6">
+    <div className="min-h-screen bg-gray-100 py-6 print:py-0">
       <WhatsAppSend
-        message={`${settings.shopName} — Eye Prescription\nCustomer: ${data.customerName}\nPhone: ${data.customerPhone}`}
+        message={`${settings.shopName} â€” Eye Prescription\nCustomer: ${data.customerName}\nPhone: ${data.customerPhone}`}
         recipients={[data.customerPhone]}
         shopWhatsapp={settings.whatsapp}
         printLabel="Print Prescription"

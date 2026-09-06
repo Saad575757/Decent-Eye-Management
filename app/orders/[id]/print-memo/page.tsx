@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+﻿import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getSession } from "@/lib/auth";
 import { getSettings } from "@/lib/services/settings";
@@ -52,9 +52,9 @@ export default async function PrintMemoPage({
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-6">
+    <div className="min-h-screen bg-gray-100 py-6 print:py-0">
       <WhatsAppSend
-        message={`${settings.shopName} — Memo\nOrder No: ${memo.orderNumber}\nCustomer: ${memo.customerName}\nPhone: ${memo.customerPhone}\nCollection Date: ${memo.collectionDate.toLocaleDateString()}`}
+        message={`${settings.shopName} â€” Memo\nOrder No: ${memo.orderNumber}\nCustomer: ${memo.customerName}\nPhone: ${memo.customerPhone}\nCollection Date: ${memo.collectionDate.toLocaleDateString()}`}
         recipients={[memo.customerPhone]}
         shopWhatsapp={settings.whatsapp}
         printLabel="Print Memo"

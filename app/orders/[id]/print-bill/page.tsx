@@ -1,4 +1,4 @@
-import QRCode from "qrcode";
+﻿import QRCode from "qrcode";
 import { notFound, redirect } from "next/navigation";
 import { format } from "date-fns";
 import { getSession } from "@/lib/auth";
@@ -60,7 +60,7 @@ export default async function PrintBillPage({
   };
 
   const waMessage = [
-    `${settings.shopName} — Invoice`,
+    `${settings.shopName} â€” Invoice`,
     `Invoice No: ${bill.invoiceNumber}`,
     `Order No: ${bill.orderNumber}`,
     `Customer: ${bill.customerName}`,
@@ -83,7 +83,7 @@ export default async function PrintBillPage({
   ].join("\n");
 
   return (
-    <div className="min-h-screen bg-gray-100 py-6">
+    <div className="min-h-screen bg-gray-100 py-6 print:py-0">
       <WhatsAppSend
         message={waMessage}
         shopWhatsapp={settings.whatsapp}

@@ -104,6 +104,18 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <Link
+          href="/testing-slips/new"
+          className="group flex flex-col items-center justify-center gap-3 rounded-xl border bg-card p-6 text-center shadow-sm transition-all hover:border-primary/50 hover:bg-accent"
+        >
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 transition-colors group-hover:bg-primary/20">
+            <Plus className="h-7 w-7 text-primary" />
+          </div>
+          <span className="text-base font-semibold">New Testing Slip</span>
+        </Link>
+      </div>
+
 <QuickCategoryPicker />
 
       {/* <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
