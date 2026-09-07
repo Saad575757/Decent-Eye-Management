@@ -35,12 +35,12 @@ export function MemoPrint({ memo }: { memo: MemoData }) {
           <img
             src="/decent-eye-logo.png"
             alt={memo.shopName}
-            className="h-14 w-auto object-contain"
+            className="h-16 w-auto object-contain"
           />
         </div>
         <div className="text-center">
-          <div className="border-[3px] border-black px-6 py-1 text-2xl font-black uppercase tracking-[0.35em]">
-            Memo
+          <div className="border-[3px] border-black px-5 py-0.5 text-xl font-black uppercase tracking-[0.35em]">
+            {memo.orderNumber}
           </div>
           <div className="mt-0.5 text-[10px] tracking-wider">
             {memo.shopName}

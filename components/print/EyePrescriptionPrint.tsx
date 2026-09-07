@@ -8,6 +8,8 @@ export interface EyePrescriptionPrintData {
   customerPhone: string;
   orderDate: Date;
   prescriptions: PrescriptionPrintData[];
+  frameType?: string;
+  glassType?: string;
   currency?: string;
   total?: number;
   paid?: number;
@@ -93,6 +95,14 @@ export function EyePrescriptionPrint({
           <span>Date:</span>
           <span>{format(new Date(data.orderDate), "dd MMM yyyy")}</span>
         </div>
+        <div className="flex justify-between">
+          <span>Frame Type:</span>
+          <span className="font-semibold">{data.frameType || "—"}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Glass Type:</span>
+          <span className="font-semibold">{data.glassType || "—"}</span>
+        </div>
       </div>
 
       <div className="my-3 border-b border-dashed border-gray-400" />
@@ -144,13 +154,7 @@ export function EyePrescriptionPrint({
           </div>
         )}
 
-      <div className="my-3 border-t border-dashed border-gray-400" />
-
-      <div className="text-center text-[10px] leading-relaxed">
-        <p>Shop No. 8, Farhan Tower, Block-10/A,</p>
-        <p>Near Toyota Showroom Gulshan-e-Iqbal, Karachi.</p>
-        <p>Cell: 0308-2246251, 0337-3161788</p>
-      </div>
+      
     </div>
   );
 }

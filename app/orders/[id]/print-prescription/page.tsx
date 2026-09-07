@@ -36,11 +36,16 @@ export default async function PrintPrescriptionPage({
     return true;
   });
 
+  const frameItem = order.items.find((i) => i.category === "FRAME");
+  const glassItem = order.items.find((i) => i.category === "GLASS");
+
   const data: EyePrescriptionPrintData = {
     shopName: settings.shopName,
     customerName: order.customer.name,
     customerPhone: order.customer.phone,
     orderDate: order.orderDate,
+    frameType: frameItem?.subType || undefined,
+    glassType: glassItem?.subType || undefined,
     prescriptions: uniqueRxs.map((rx) => ({
       customerName: rx.customer?.name || undefined,
       rightSphere: rx.rightSphere,
