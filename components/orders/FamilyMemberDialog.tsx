@@ -67,7 +67,7 @@ const CATEGORY_TYPES: Record<string, string[]> = {
   SOLUTION: SOLUTION_TYPES,
 };
 
-const PRESCRIPTION_CATEGORIES = ["FRAME", "LENS", "SUNGLASSES", "CONTACT_LENS"];
+const PRESCRIPTION_CATEGORIES = ["FRAME", "LENS", "SUNGLASSES", "CONTACT_LENS", "GLASS"];
 
 export interface NewFamilyMember {
   name: string;

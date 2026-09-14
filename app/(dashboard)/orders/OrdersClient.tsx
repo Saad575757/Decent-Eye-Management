@@ -107,7 +107,7 @@ export function OrdersClient({
           </Select>
         </div>
         <Button asChild>
-          <Link href="/orders/new">+ New Order</Link>
+          <Link href="/dashboard">+ New Order</Link>
         </Button>
       </div>
 
@@ -119,7 +119,7 @@ export function OrdersClient({
                 title="No orders found"
                 description="Create your first order to see it here."
                 actionLabel="+ New Order"
-                actionHref="/orders/new"
+                actionHref="/dashboard"
               />
             </div>
           ) : (

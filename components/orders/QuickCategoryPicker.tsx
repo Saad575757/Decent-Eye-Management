@@ -9,8 +9,7 @@ const CATEGORIES = [
   {
     key: "FRAME",
     label: "Frame",
-    image:
-      "https://images.unsplash.com/photo-1758552322632-ba288778c770?w=200&h=200&fit=crop&auto=format&q=80",
+    image: "/frame.jpg",
     tile: "border-indigo-200 bg-indigo-50",
     chip: "bg-indigo-600 text-white",
     fill: "border-indigo-500 bg-indigo-500 ring-2 ring-indigo-500/30",
@@ -18,8 +17,7 @@ const CATEGORIES = [
   {
     key: "GLASS",
     label: "Glass",
-    image:
-      "https://images.unsplash.com/photo-1764737711260-9661f223d782?w=200&h=200&fit=crop&auto=format&q=80",
+    image: "/glass.jpg",
     tile: "border-teal-200 bg-teal-50",
     chip: "bg-teal-600 text-white",
     fill: "border-teal-500 bg-teal-500 ring-2 ring-teal-500/30",
@@ -27,8 +25,7 @@ const CATEGORIES = [
   {
     key: "SUNGLASSES",
     label: "Sunglass",
-    image:
-      "https://images.pexels.com/photos/1191522/pexels-photo-1191522.jpeg?w=200&h=200&fit=crop&auto=compress&cs=tinysrgb",
+    image: "/sunglass.jpeg",
     tile: "border-amber-200 bg-amber-50",
     chip: "bg-amber-600 text-white",
     fill: "border-amber-500 bg-amber-500 ring-2 ring-amber-500/30",
@@ -36,8 +33,7 @@ const CATEGORIES = [
   {
     key: "SOLUTION",
     label: "Solution",
-    image:
-      "https://images.pexels.com/photos/5843442/pexels-photo-5843442.jpeg?w=200&h=200&fit=crop&auto=compress&cs=tinysrgb",
+    image: "/solution.png",
     tile: "border-sky-200 bg-sky-50",
     chip: "bg-sky-600 text-white",
     fill: "border-sky-500 bg-sky-500 ring-2 ring-sky-500/30",
@@ -45,8 +41,7 @@ const CATEGORIES = [
   {
     key: "CONTACT_LENS",
     label: "Contact Lens",
-    image:
-      "https://images.pexels.com/photos/5843354/pexels-photo-5843354.jpeg?w=200&h=200&fit=crop&auto=compress&cs=tinysrgb",
+    image: "/lens.jpg",
     tile: "border-rose-200 bg-rose-50",
     chip: "bg-rose-600 text-white",
     fill: "border-rose-500 bg-rose-500 ring-2 ring-rose-500/30",
@@ -90,7 +85,7 @@ export function QuickCategoryPicker() {
           >
             <div
               className={cn(
-                "flex h-16 w-16 items-center justify-center overflow-hidden rounded-full shadow-md transition-all",
+                "flex h-24 w-24 items-center justify-center overflow-hidden rounded-full shadow-md transition-all",
                 selected.has(c.key)
                   ? "ring-2 ring-white"
                   : cn(c.chip, "group-hover:scale-110")
