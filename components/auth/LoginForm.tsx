@@ -212,11 +212,7 @@ export function LoginForm() {
             : "Login"}
       </Button>
 
-      <p className="text-center text-xs text-muted-foreground">
-        {mode === "add"
-          ? "Create new credentials. The existing admin login will keep working."
-          : "Protected area. Authorized staff only."}
-      </p>
+      
     </form>
   );
 }
