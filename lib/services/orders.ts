@@ -112,7 +112,7 @@ export async function createOrder(
     }
     if (customerPrescriptions) {
       for (const cp of customerPrescriptions) {
-        if (!cp.customerId || cp.customerId === customerId) continue;
+        if (!cp.customerId) continue;
         if (cp.prescription) {
           await createRx(cp.customerId, cp.prescription);
         }

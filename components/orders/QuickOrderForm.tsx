@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Loader2, Trash2, UserPlus } from "lucide-react";
+import { Loader2, Plus, Trash2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -89,9 +89,7 @@ export function QuickOrderForm({
   const [advance, setAdvance] = useState("0");
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [notes, setNotes] = useState("");
-  const [prescription, setPrescription] = useState<PrescriptionValues>(
-    getEmptyPrescription()
-  );
+  const [prescriptions, setPrescriptions] = useState<PrescriptionValues[]>([]);
   const [familyPrescriptions, setFamilyPrescriptions] = useState<
     PrescriptionValues[]
   >([]);
@@ -104,10 +102,6 @@ export function QuickOrderForm({
   const subtotal = items.reduce((sum, i) => sum + i.total, 0);
   const advanceNum = Math.max(0, parseFloat(advance) || 0);
   const balance = subtotal - Math.min(advanceNum, subtotal);
-
-  const hasPrescriptionItem = items.some((i) =>
-    PRESCRIPTION_CATEGORIES.includes(i.category)
-  );
 
   function customerNameFor(index: number) {
     if (index === 0) return customerPhone.trim() || "Customer 1";
@@ -124,6 +118,52 @@ export function QuickOrderForm({
         parseInt(i.customerId || "0", 10) === index &&
         PRESCRIPTION_CATEGORIES.includes(i.category)
     );
+  }
+
+  function prescriptionHasValues(p: PrescriptionValues) {
+    return !!(
+      p.rightSphere ||
+      p.rightCylinder ||
+      p.rightAxis ||
+      p.rightAdd ||
+      p.rightPD ||
+      p.leftSphere ||
+      p.leftCylinder ||
+      p.leftAxis ||
+      p.leftAdd ||
+      p.leftPD ||
+      p.notes
+    );
+  }
+
+  function toPrescriptionPayload(p: PrescriptionValues) {
+    return {
+      rightSphere: p.rightSphere,
+      rightCylinder: p.rightCylinder,
+      rightAxis: p.rightAxis,
+      rightAdd: p.rightAdd,
+      rightPD: p.rightPD,
+      leftSphere: p.leftSphere,
+      leftCylinder: p.leftCylinder,
+      leftAxis: p.leftAxis,
+      leftAdd: p.leftAdd,
+      leftPD: p.leftPD,
+      notes: p.notes,
+    };
+  }
+
+  function addPrescription() {
+    setPrescriptions((prev) => [...prev, getEmptyPrescription()]);
+  }
+
+  function updatePrescription(index: number, values: PrescriptionValues) {
+    setPrescriptions((prev) =>
+      prev.map((p, i) => (i === index ? values : p))
+    );
+  }
+
+  function removePrescription(index: number) {
+    setPrescriptions((prev) => prev.filter((_, i) => i !== index));
   }
 
   function addItemFor(index: number, item: CartItem) {
@@ -222,75 +262,19 @@ export function QuickOrderForm({
       advance: Math.min(advanceNum, subtotal),
       paymentMethod,
       notes,
-      prescription: hasPrescriptionItem
-        ? {
-            rightSphere: prescription.rightSphere,
-            rightCylinder: prescription.rightCylinder,
-            rightAxis: prescription.rightAxis,
-            rightAdd: prescription.rightAdd,
-            rightPD: prescription.rightPD,
-            leftSphere: prescription.leftSphere,
-            leftCylinder: prescription.leftCylinder,
-            leftAxis: prescription.leftAxis,
-            leftAdd: prescription.leftAdd,
-            leftPD: prescription.leftPD,
-            notes: prescription.notes,
-          }
-        : undefined,
       customerPrescriptions: [
-        {
-          customerId: "0",
-          prescription:
-            hasPrescriptionItem && !!prescription.rightSphere
-              ? {
-                  rightSphere: prescription.rightSphere,
-                  rightCylinder: prescription.rightCylinder,
-                  rightAxis: prescription.rightAxis,
-                  rightAdd: prescription.rightAdd,
-                  rightPD: prescription.rightPD,
-                  leftSphere: prescription.leftSphere,
-                  leftCylinder: prescription.leftCylinder,
-                  leftAxis: prescription.leftAxis,
-                  leftAdd: prescription.leftAdd,
-                  leftPD: prescription.leftPD,
-                  notes: prescription.notes,
-                }
-              : undefined,
-        },
+        ...prescriptions
+          .filter(prescriptionHasValues)
+          .map((p) => ({
+            customerId: "0",
+            prescription: toPrescriptionPayload(p),
+          })),
         ...familyMembers.map((m) => {
           const fp = familyPrescriptions[familyMembers.indexOf(m)];
-          const hasRx =
-            !!fp &&
-            !!(
-              fp.rightSphere ||
-              fp.rightCylinder ||
-              fp.rightAxis ||
-              fp.rightAdd ||
-              fp.rightPD ||
-              fp.leftSphere ||
-              fp.leftCylinder ||
-              fp.leftAxis ||
-              fp.leftAdd ||
-              fp.leftPD ||
-              fp.notes
-            );
+          const hasRx = !!fp && prescriptionHasValues(fp);
           return {
             customerId: String(familyMembers.indexOf(m) + 1),
-            prescription: hasRx
-              ? {
-                  rightSphere: fp.rightSphere,
-                  rightCylinder: fp.rightCylinder,
-                  rightAxis: fp.rightAxis,
-                  rightAdd: fp.rightAdd,
-                  rightPD: fp.rightPD,
-                  leftSphere: fp.leftSphere,
-                  leftCylinder: fp.leftCylinder,
-                  leftAxis: fp.leftAxis,
-                  leftAdd: fp.leftAdd,
-                  leftPD: fp.leftPD,
-                  notes: fp.notes,
-                }
-              : undefined,
+            prescription: hasRx ? toPrescriptionPayload(fp) : undefined,
           };
         }),
       ],
@@ -403,11 +387,55 @@ export function QuickOrderForm({
         </Card>
 
         {customerHasRxItem(0) && (
-          <div className="space-y-1.5">
+          <div className="space-y-3">
             <h3 className="font-semibold">
               {customerNameFor(0)} — Eye Prescription
             </h3>
-            <PrescriptionForm values={prescription} onChange={setPrescription} />
+            {prescriptions.length === 0 ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addPrescription}
+              >
+                <Plus className="mr-1 h-4 w-4" />
+                Add Prescription
+              </Button>
+            ) : (
+              prescriptions.map((p, i) => (
+                <div key={i} className="space-y-1.5">
+                  <PrescriptionForm
+                    title={
+                      prescriptions.length > 1
+                        ? `Eye Prescription ${i + 1}`
+                        : "Eye Prescription"
+                    }
+                    values={p}
+                    onChange={(v) => updatePrescription(i, v)}
+                  />
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive"
+                      onClick={() => removePrescription(i)}
+                      aria-label={`Remove prescription ${i + 1}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={addPrescription}
+                      aria-label="Add another prescription"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
 

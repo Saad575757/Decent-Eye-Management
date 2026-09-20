@@ -56,9 +56,11 @@ const rows: { key: string; label: string }[] = [
 export function PrescriptionForm({
   values,
   onChange,
+  title = "Eye Prescription",
 }: {
   values: PrescriptionValues;
   onChange: (v: PrescriptionValues) => void;
+  title?: string;
 }) {
   function setField(field: keyof PrescriptionValues, value: string) {
     onChange({ ...values, [field]: value });
@@ -67,7 +69,7 @@ export function PrescriptionForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Eye Prescription</CardTitle>
+        <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="overflow-x-auto">

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createSession, isAdminCredentials } from "@/lib/auth";
+import { createSession, findUserByCredentials, isAdminCredentials } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
@@ -13,18 +13,28 @@ export async function POST(request: Request) {
       );
     }
 
-    const valid = isAdminCredentials(email as string, password as string);
-    if (!valid) {
-      return NextResponse.json(
-        { error: "Invalid email or password" },
-        { status: 401 }
-      );
+    const emailStr = String(email);
+    const passwordStr = String(password);
+
+    const validAdmin = isAdminCredentials(emailStr, passwordStr);
+    if (validAdmin) {
+      await createSession(emailStr, emailStr.split("@")[0].replace(/[^a-zA-Z]/g, " "));
+      return NextResponse.json({ ok: true });
     }
 
-    const name = email.split("@")[0].replace(/[^a-zA-Z]/g, " ");
-    await createSession(email as string, name);
+    const user = await findUserByCredentials(emailStr, passwordStr);
+    if (user) {
+      await createSession(
+        user.email,
+        user.name || emailStr.split("@")[0].replace(/[^a-zA-Z]/g, " ")
+      );
+      return NextResponse.json({ ok: true });
+    }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json(
+      { error: "Invalid email or password" },
+      { status: 401 }
+    );
   } catch (err) {
     console.error("Login error:", err);
     return NextResponse.json(
