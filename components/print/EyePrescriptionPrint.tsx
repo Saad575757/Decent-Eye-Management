@@ -2,18 +2,48 @@ import { format } from "date-fns";
 import { formatCurrency } from "@/lib/utils";
 import type { PrescriptionPrintData } from "@/components/print/PrescriptionPrint";
 
+export interface EyePrescriptionPrintItem {
+  category: string;
+  productName: string;
+  subType?: string | null;
+  quantity: number;
+  customerName?: string | null;
+}
+
 export interface EyePrescriptionPrintData {
   shopName: string;
   customerName: string;
   customerPhone: string;
   orderDate: Date;
   prescriptions: PrescriptionPrintData[];
-  frameType?: string;
-  glassType?: string;
+  items: EyePrescriptionPrintItem[];
   currency?: string;
   total?: number;
   paid?: number;
   balance?: number;
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  FRAME: "Frame",
+  GLASS: "Glass",
+  LENS: "Lens",
+  SUNGLASSES: "Sunglasses",
+  SOLUTION: "Solution",
+  CONTACT_LENS: "Contact Lens",
+  ACCESSORY: "Accessory",
+};
+
+function itemLabel(item: EyePrescriptionPrintItem): string {
+  const label = CATEGORY_LABELS[item.category] ?? item.category;
+  return item.customerName ? `${label} (${item.customerName})` : label;
+}
+
+function itemDetail(item: EyePrescriptionPrintItem): string {
+  const generic = CATEGORY_LABELS[item.category] ?? item.category;
+  const name = item.productName?.trim() ?? "";
+  const sub = item.subType?.trim() ?? "";
+  if (sub) return sub;
+  return name && name.toLowerCase() !== generic.toLowerCase() ? name : "";
 }
 
 function EyeBlock({
@@ -95,14 +125,16 @@ export function EyePrescriptionPrint({
           <span>Date:</span>
           <span>{format(new Date(data.orderDate), "dd MMM yyyy")}</span>
         </div>
-        <div className="flex justify-between">
-          <span>Frame Type:</span>
-          <span className="font-semibold">{data.frameType || "—"}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>Glass Type:</span>
-          <span className="font-semibold">{data.glassType || "—"}</span>
-        </div>
+        {data.items.length > 0 && <p className="font-semibold">Items</p>}
+        {data.items.map((item, idx) => (
+          <div key={idx} className="flex justify-between gap-2">
+            <span>{itemLabel(item)}:</span>
+            <span className="text-right font-semibold">
+              {itemDetail(item) || "—"}
+              {item.quantity > 1 ? ` x${item.quantity}` : ""}
+            </span>
+          </div>
+        ))}
       </div>
 
       <div className="my-3 border-b border-dashed border-gray-400" />

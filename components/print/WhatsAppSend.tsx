@@ -6,26 +6,36 @@ import { toPng } from "html-to-image";
 import { MessageCircle, Printer, ImageDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const DEFAULT_RECIPIENT = "03484630117";
+const COUNTRY_CODE = "92";
+const NATIONAL_MOBILE = /^3\d{9}$/;
 
-function toWaNumber(raw: string): string {
-  const digits = raw.replace(/\D/g, "");
-  if (digits.startsWith("92")) return digits;
-  if (digits.startsWith("0")) return "92" + digits.slice(1);
-  return "92" + digits;
+function toWaNumber(raw: string): string | null {
+  let digits = raw.trim().replace(/\D/g, "");
+  if (!digits) return null;
+
+  if (digits.startsWith("00")) {
+    digits = digits.slice(2);
+  } else if (digits.startsWith("0")) {
+    const national = digits.slice(1);
+    if (!NATIONAL_MOBILE.test(national)) return null;
+    return COUNTRY_CODE + national;
+  } else if (digits.length === 10 && NATIONAL_MOBILE.test(digits)) {
+    return COUNTRY_CODE + digits;
+  }
+
+  if (digits.length < 8 || digits.length > 15) return null;
+  return digits;
 }
 
 export function WhatsAppSend({
   message,
   recipients = [],
-  shopWhatsapp,
   printLabel,
   downloadName,
   children,
 }: {
   message: string;
   recipients?: string[];
-  shopWhatsapp?: string | null;
   printLabel: string;
   downloadName: string;
   children: ReactNode;
@@ -33,33 +43,56 @@ export function WhatsAppSend({
   const docRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
 
-  const targets = Array.from(
+  const parsed = Array.from(
     new Set(
-      [...recipients, shopWhatsapp || DEFAULT_RECIPIENT]
+      recipients
         .map((p) => p?.trim())
         .filter((p): p is string => !!p)
-        .map(toWaNumber)
-        .filter(Boolean)
     )
+  ).map((raw) => ({ raw, wa: toWaNumber(raw) }));
+  const targets = Array.from(
+    new Set(parsed.flatMap((t) => (t.wa ? [t.wa] : [])))
   );
+  const invalid = parsed.flatMap((t) => (t.wa ? [] : [t.raw]));
   const encoded = encodeURIComponent(message);
 
   function openWhatsApp() {
-    targets.forEach((num, i) => {
+    if (invalid.length) {
+      alert(
+        `This number is not a valid WhatsApp number:\n${invalid.join("\n")}\n\n` +
+          "Check the customer's phone/WhatsApp number, or use Download Image and send it manually."
+      );
+      return false;
+    }
+    if (!targets.length) {
+      alert(
+        "No WhatsApp number is saved for this customer. " +
+          "Add a phone/WhatsApp number first, or use Download Image and send it manually."
+      );
+      return false;
+    }
+    targets.forEach((num) => {
       window.open(
         `https://wa.me/${num}?text=${encoded}`,
         "_blank",
         "noopener"
       );
     });
+    return true;
   }
 
   async function renderPng(): Promise<Blob | null> {
-    if (!docRef.current) return null;
+    const node = docRef.current;
+    if (!node) return null;
     await document.fonts?.ready;
-    const dataUrl = await toPng(docRef.current, {
+    const rect = node.getBoundingClientRect();
+    const width = Math.ceil(Math.max(rect.width, node.scrollWidth));
+    const height = Math.ceil(Math.max(rect.height, node.scrollHeight));
+    const dataUrl = await toPng(node, {
       pixelRatio: 2,
       cacheBust: true,
+      width,
+      height,
       style: {
         margin: "0",
         backgroundColor: "white",
@@ -83,7 +116,10 @@ export function WhatsAppSend({
   async function handleSendWithImage() {
     if (busy) return;
     setBusy(true);
-    openWhatsApp();
+    if (!openWhatsApp()) {
+      setBusy(false);
+      return;
+    }
     try {
       const blob = await renderPng();
       let copied = false;

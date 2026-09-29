@@ -68,8 +68,7 @@ export default async function PrintSlipPage({
     <div className="min-h-screen bg-gray-100 py-6 print:py-0">
       <WhatsAppSend
         message={waMessage}
-        recipients={[slip.customerPhone]}
-        shopWhatsapp={settings.whatsapp}
+        recipients={[order.customer.whatsapp || order.customer.phone]}
         printLabel="Print Customer Slip"
         downloadName={`slip-${slip.orderNumber}.png`}
       >

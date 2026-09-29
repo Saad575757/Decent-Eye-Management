@@ -55,8 +55,7 @@ export default async function PrintMemoPage({
     <div className="min-h-screen bg-gray-100 py-6 print:py-0">
       <WhatsAppSend
         message={`${settings.shopName} â€” Memo\nOrder No: ${memo.orderNumber}\nCustomer: ${memo.customerName}\nPhone: ${memo.customerPhone}\nCollection Date: ${memo.collectionDate.toLocaleDateString()}`}
-        recipients={[memo.customerPhone]}
-        shopWhatsapp={settings.whatsapp}
+        recipients={[order.customer.whatsapp || order.customer.phone]}
         printLabel="Print Memo"
         downloadName={`memo-${memo.orderNumber}.png`}
       >

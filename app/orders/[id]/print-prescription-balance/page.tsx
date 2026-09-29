@@ -37,16 +37,18 @@ export default async function PrintPrescriptionBalancePage({
     return true;
   });
 
-  const frameItem = order.items.find((i) => i.category === "FRAME");
-  const glassItem = order.items.find((i) => i.category === "GLASS");
-
   const data: EyePrescriptionPrintData = {
     shopName: settings.shopName,
     customerName: order.customer.name,
     customerPhone: order.customer.phone,
     orderDate: order.orderDate,
-    frameType: frameItem?.subType || undefined,
-    glassType: glassItem?.subType || undefined,
+    items: order.items.map((i) => ({
+      category: i.category,
+      productName: i.productName,
+      subType: i.subType,
+      quantity: i.quantity,
+      customerName: i.customer?.name || null,
+    })),
     prescriptions: uniqueRxs.map((rx) => ({
       customerName: rx.customer?.name || undefined,
       rightSphere: rx.rightSphere,
@@ -81,8 +83,7 @@ export default async function PrintPrescriptionBalancePage({
     <div className="min-h-screen bg-gray-100 py-6 print:py-0">
       <WhatsAppSend
         message={waMessage}
-        recipients={[data.customerPhone]}
-        shopWhatsapp={settings.whatsapp}
+        recipients={[order.customer.whatsapp || order.customer.phone]}
         printLabel="Print Prescription (Balance)"
         downloadName={`prescription-balance-${order.orderNumber}.png`}
       >
