@@ -394,22 +394,29 @@ export async function updateOrderAction(orderId: string, formData: unknown) {
           },
         });
 
-        if (data.prescription) {
+        const prescriptionList =
+          data.prescriptions && data.prescriptions.length > 0
+            ? data.prescriptions
+            : data.prescription
+              ? [data.prescription]
+              : [];
+
+        for (const rx of prescriptionList) {
           await tx.prescription.create({
             data: {
               customerId: data.customerId,
               orderId,
-              rightSphere: data.prescription.rightSphere || null,
-              rightCylinder: data.prescription.rightCylinder || null,
-              rightAxis: data.prescription.rightAxis || null,
-              rightAdd: data.prescription.rightAdd || null,
-              rightPD: data.prescription.rightPD || null,
-              leftSphere: data.prescription.leftSphere || null,
-              leftCylinder: data.prescription.leftCylinder || null,
-              leftAxis: data.prescription.leftAxis || null,
-              leftAdd: data.prescription.leftAdd || null,
-              leftPD: data.prescription.leftPD || null,
-              notes: data.prescription.notes || null,
+              rightSphere: rx.rightSphere || null,
+              rightCylinder: rx.rightCylinder || null,
+              rightAxis: rx.rightAxis || null,
+              rightAdd: rx.rightAdd || null,
+              rightPD: rx.rightPD || null,
+              leftSphere: rx.leftSphere || null,
+              leftCylinder: rx.leftCylinder || null,
+              leftAxis: rx.leftAxis || null,
+              leftAdd: rx.leftAdd || null,
+              leftPD: rx.leftPD || null,
+              notes: rx.notes || null,
             },
           });
         }

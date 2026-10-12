@@ -30,6 +30,20 @@ export const orderItemSchema = z.object({
   price: z.number().min(0, "Price cannot be negative"),
 });
 
+export const rxObjectSchema = z.object({
+  rightSphere: z.string().optional().or(z.literal("")),
+  rightCylinder: z.string().optional().or(z.literal("")),
+  rightAxis: z.string().optional().or(z.literal("")),
+  rightAdd: z.string().optional().or(z.literal("")),
+  rightPD: z.string().optional().or(z.literal("")),
+  leftSphere: z.string().optional().or(z.literal("")),
+  leftCylinder: z.string().optional().or(z.literal("")),
+  leftAxis: z.string().optional().or(z.literal("")),
+  leftAdd: z.string().optional().or(z.literal("")),
+  leftPD: z.string().optional().or(z.literal("")),
+  notes: z.string().optional().or(z.literal("")),
+});
+
 export const orderSchema = z
   .object({
     customerId: z.string().min(1, "Please select a customer"),
@@ -42,21 +56,8 @@ export const orderSchema = z
     items: z
       .array(orderItemSchema)
       .min(1, "Add at least one item to the order"),
-    prescription: z
-      .object({
-        rightSphere: z.string().optional().or(z.literal("")),
-        rightCylinder: z.string().optional().or(z.literal("")),
-        rightAxis: z.string().optional().or(z.literal("")),
-        rightAdd: z.string().optional().or(z.literal("")),
-        rightPD: z.string().optional().or(z.literal("")),
-        leftSphere: z.string().optional().or(z.literal("")),
-        leftCylinder: z.string().optional().or(z.literal("")),
-        leftAxis: z.string().optional().or(z.literal("")),
-        leftAdd: z.string().optional().or(z.literal("")),
-        leftPD: z.string().optional().or(z.literal("")),
-        notes: z.string().optional().or(z.literal("")),
-      })
-      .optional(),
+    prescription: rxObjectSchema.optional(),
+    prescriptions: z.array(rxObjectSchema).optional(),
     customer: quickCustomerSchema.optional(),
   })
   .superRefine((data, ctx) => {
@@ -99,19 +100,7 @@ export const quickOrderItemSchema = z.object({
   price: z.number().min(0),
 });
 
-const rxObject = z.object({
-  rightSphere: z.string().optional().or(z.literal("")),
-  rightCylinder: z.string().optional().or(z.literal("")),
-  rightAxis: z.string().optional().or(z.literal("")),
-  rightAdd: z.string().optional().or(z.literal("")),
-  rightPD: z.string().optional().or(z.literal("")),
-  leftSphere: z.string().optional().or(z.literal("")),
-  leftCylinder: z.string().optional().or(z.literal("")),
-  leftAxis: z.string().optional().or(z.literal("")),
-  leftAdd: z.string().optional().or(z.literal("")),
-  leftPD: z.string().optional().or(z.literal("")),
-  notes: z.string().optional().or(z.literal("")),
-});
+const rxObject = rxObjectSchema;
 
 export const quickOrderSchema = z.object({
   customerPhone: z.string().min(1, "Customer phone is required").max(40),

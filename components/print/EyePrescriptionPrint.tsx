@@ -34,8 +34,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 function itemLabel(item: EyePrescriptionPrintItem): string {
-  const label = CATEGORY_LABELS[item.category] ?? item.category;
-  return item.customerName ? `${label} (${item.customerName})` : label;
+  return CATEGORY_LABELS[item.category] ?? item.category;
 }
 
 function itemDetail(item: EyePrescriptionPrintItem): string {

@@ -185,7 +185,9 @@ export function WhatsAppSend({
       </div>
 
       <div className="mt-4 flex justify-center print:mt-0">
-        <div ref={docRef}>{children}</div>
+        <div ref={docRef} className="p-[12mm] print:p-0">
+          {children}
+        </div>
       </div>
     </div>
   );

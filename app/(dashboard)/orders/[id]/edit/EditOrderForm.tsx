@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -96,6 +96,7 @@ export interface ExistingOrderData {
     price: number;
   }[];
   prescription?: PrescriptionValues;
+  prescriptions?: PrescriptionValues[];
   discount: number;
   paid: number;
   paymentMethod: string;
@@ -136,8 +137,14 @@ export function EditOrderForm({
       total: i.price * i.quantity,
     }))
   );
-  const [prescription, setPrescription] = useState<PrescriptionValues>(
-    existing.prescription || getEmptyPrescription()
+  const [prescriptions, setPrescriptions] = useState<PrescriptionValues[]>(
+    () => {
+      if (existing.prescriptions && existing.prescriptions.length > 0) {
+        return existing.prescriptions;
+      }
+      if (existing.prescription) return [existing.prescription];
+      return [];
+    }
   );
   const [discount, setDiscount] = useState(String(existing.discount));
   const [paid, setPaid] = useState(String(existing.paid));
@@ -168,7 +175,9 @@ export function EditOrderForm({
   const hasPrescriptionItem = items.some((i) =>
     PRESCRIPTION_CATEGORIES.includes(i.category)
   );
-  const rxHasValues = Object.values(prescription).some((v) => v.trim() !== "");
+  const hasRxValues = prescriptions.some((p) =>
+    Object.values(p).some((v) => v.trim() !== "")
+  );
 
   function addItem(item: CartItem) {
     setItems((prev) => [...prev, item]);
@@ -176,6 +185,20 @@ export function EditOrderForm({
 
   function removeItem(index: number) {
     setItems((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function addPrescription() {
+    setPrescriptions((prev) => [...prev, getEmptyPrescription()]);
+  }
+
+  function updatePrescription(index: number, values: PrescriptionValues) {
+    setPrescriptions((prev) =>
+      prev.map((p, i) => (i === index ? values : p))
+    );
+  }
+
+  function removePrescription(index: number) {
+    setPrescriptions((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function handleSave() {
@@ -205,22 +228,21 @@ export function EditOrderForm({
         quantity: i.quantity,
         price: i.price,
       })),
-      prescription:
-        rxHasValues || prescription.notes.trim()
-          ? {
-              rightSphere: prescription.rightSphere,
-              rightCylinder: prescription.rightCylinder,
-              rightAxis: prescription.rightAxis,
-              rightAdd: prescription.rightAdd,
-              rightPD: prescription.rightPD,
-              leftSphere: prescription.leftSphere,
-              leftCylinder: prescription.leftCylinder,
-              leftAxis: prescription.leftAxis,
-              leftAdd: prescription.leftAdd,
-              leftPD: prescription.leftPD,
-              notes: prescription.notes,
-            }
-          : undefined,
+      prescriptions: prescriptions
+        .filter((p) => Object.values(p).some((v) => v.trim() !== ""))
+        .map((p) => ({
+          rightSphere: p.rightSphere,
+          rightCylinder: p.rightCylinder,
+          rightAxis: p.rightAxis,
+          rightAdd: p.rightAdd,
+          rightPD: p.rightPD,
+          leftSphere: p.leftSphere,
+          leftCylinder: p.leftCylinder,
+          leftAxis: p.leftAxis,
+          leftAdd: p.leftAdd,
+          leftPD: p.leftPD,
+          notes: p.notes,
+        })),
     };
 
     const res = await updateOrderAction(orderId, payload);
@@ -297,18 +319,55 @@ export function EditOrderForm({
           </CardContent>
         </Card>
 
-        {(hasPrescriptionItem || rxHasValues) && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Eye Prescription</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-1.5">
-              <PrescriptionForm
-                values={prescription}
-                onChange={setPrescription}
-              />
-            </CardContent>
-          </Card>
+        {(hasPrescriptionItem || hasRxValues) && (
+          <div className="space-y-3">
+            <h3 className="font-semibold">Eye Prescription</h3>
+            {prescriptions.length === 0 ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addPrescription}
+              >
+                <Plus className="mr-1 h-4 w-4" />
+                Add Prescription
+              </Button>
+            ) : (
+              prescriptions.map((p, i) => (
+                <div key={i} className="space-y-1.5">
+                  <PrescriptionForm
+                    title={
+                      prescriptions.length > 1
+                        ? `Eye Prescription ${i + 1}`
+                        : "Eye Prescription"
+                    }
+                    values={p}
+                    onChange={(v) => updatePrescription(i, v)}
+                  />
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive"
+                      onClick={() => removePrescription(i)}
+                      aria-label={`Remove prescription ${i + 1}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={addPrescription}
+                      aria-label="Add another prescription"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         )}
 
         <Card>
